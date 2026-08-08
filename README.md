@@ -17,6 +17,34 @@ npm run report    # sanity stats: people, cycle times, expertise mix
 
 Demo dataset: Apache Kafka's public Jira (~10k resolved, assigned tickets), contributor names pseudonymized at ingest.
 
+```bash
+npm run ask -- --title "Streams state store corruption after rebalance"   # CLI query
+npm run ask -- --synth    # synthesis smoke test + citation-validator self-test
+```
+
+## Dashboard usage
+
+```bash
+cd web
+npm install
+npm run dev      # development on :3000
+# or production:
+npm run build && npm start
+```
+
+Reads `../data/taskscope.db` directly (run the ingest first). Deploy target
+is any Node host (better-sqlite3 is a native module — serverless platforms
+need rework, a plain VM/container does not).
+
+**Optional:** copy `.env.example` to `.env` in the project root and add an
+`ANTHROPIC_API_KEY`. With it, `/api/ask` prose (complexity rationale,
+clarifying questions, per-candidate "why") is written by Claude with
+citation-integrity checks; without it, the same endpoint serves
+deterministic template prose. Numbers and ranking are engine-computed
+either way — the LLM never touches them.
+
+Demo deep-links: `/ask?q=<title>&d=<description>` auto-runs a query on load.
+
 ## API contract (web ↔ engine)
 
 - `GET /api/team` — roster with per-person stats (resolved count, median cycle days, active WIP, top components, type mix) + `meta {totalTickets, dateRange}` for header aggregates
