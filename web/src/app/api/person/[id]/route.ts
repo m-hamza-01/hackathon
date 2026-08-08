@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMockPerson } from "@/lib/mock";
+import { getPerson } from "@/lib/queries";
 
 export async function GET(
   _req: Request,
@@ -10,9 +10,15 @@ export async function GET(
   if (isNaN(numId)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  const data = getMockPerson(numId);
-  if (!data) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  try {
+    const data = getPerson(numId);
+    if (!data) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("[/api/person]", err);
+    return NextResponse.json({ error: "Failed to load person data" }, { status: 500 });
   }
-  return NextResponse.json(data);
 }

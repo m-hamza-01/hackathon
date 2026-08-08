@@ -1,66 +1,15 @@
 /**
- * Core scoring engine: BM25 retrieval + candidate ranking + complexity/ETA.
+ * Scoring engine for /api/ask — ported from src/engine/engine.ts.
  *
- * ── Effort proxy ──────────────────────────────────────────────────────────────
- * We need one number for "how many days did this ticket take":
- *   1. work_days  (first In-Progress/Patch-Available → resolved) — preferred.
- *      ~951 of 2000 tickets have it; it measures real working time, not clock time.
- *   2. cycle_days (created → resolved) — fallback.
- *      Grossly overstates Sub-task effort because sub-tasks are frequently parked
- *      in backlog for months (e.g. trivial "move class X" → 150+ cycle days).
- *      For Sub-tasks with only cycle_days, apply 0.2× discount.
- *
- * ── Candidate scoring formula ─────────────────────────────────────────────────
- *   finalScore(p) = speedFactor(p) × wipPenalty(p) × countNorm(p) × componentBoost(p)
- *                   × Σ_t [ sim(t) × recency(t) ]
- *
- *   sim(t)           = BM25 score / max BM25 score in result set   ∈ [0, 1]
- *   recency(t)       = exp(−ln2 × monthsAgo / 24)   half-life = 24 months
- *   speedFactor(p)   = clamp(corpusMedianEffort / personMedianEffort, 0.5, 2.0)
- *                      — rewards people who close similar tickets faster;
- *                        corpusMedianEffort is pre-computed over all ~2000 resolved
- *                        tickets for stability (vs using volatile neighbor-subset median)
- *   wipPenalty(p)    = 1 / (1 + 0.15 × activeWip(p))
- *                      — continuous discount; 0 WIP → 1.0, 4 WIP → ≈ 0.63
- *   countNorm(p)     = 1 / sqrt(ln(1 + totalTickets(p)))
- *                      — mild penalty for high total ticket count to reduce "famous
- *                        person" bias: a developer with 113 tickets is ~57× more
- *                        likely to appear in any random top-35 result set than one
- *                        with 1 ticket; this normalization partially corrects that.
- *                        Grows slowly: N=1→1.20, N=10→0.65, N=113→0.46.
- *   componentBoost(p)= 1 + 2.0 × avgFraction(detectedComponents, p)
- *                      — rewards candidates with demonstrable subsystem expertise
- *                        matching the query area (e.g. "streams" query → streams
- *                        specialist). avgFraction = mean fraction of person's tickets
- *                        in each query-detected Kafka component. No components detected
- *                        in the query → boost = 1.0 (no effect).
- *
- * ── Complexity labels ─────────────────────────────────────────────────────────
- * Based on the non-Sub-task work_days empirical distribution:
- *   Low      : medianDays ≤ 3    (below P25 ≈ 2.6d)
- *   Medium   : 3 < medianDays ≤ 14   (around P50 ≈ 15d)
- *   High     : 14 < medianDays ≤ 60  (up to P75 ≈ 61d)
- *   Very High: medianDays > 60
- *
- * ── Minimum evidence threshold ───────────────────────────────────────────────
- * At least 1 neighbor match required. Single matches are valid for people with
- * few total tickets (expected random hit < 0.5); countNorm already discounts
- * prolific developers who have accidental low-quality matches.
+ * Changes from the root-package version:
+ *   - DB opened via the shared singleton in ./db (uses process.cwd() path,
+ *     safe across Next.js dev/prod because `next` always runs from web/).
+ *   - Imports bm25 from ./bm25 (local copy, same logic).
+ *   - No CLI entry point — export only, consumed by the API route.
  */
 
-import Database from "better-sqlite3";
-import { fileURLToPath } from "url";
-import path from "path";
-import { buildIndex, search, RawDoc } from "./bm25.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// TASKSCOPE_DB_PATH lets the Next.js web layer override the path at startup
-// (next.config.ts sets it before engine.ts is first imported).
-// CLI usage leaves it unset and falls back to the relative-to-source path.
-const DB_PATH   = process.env.TASKSCOPE_DB_PATH
-  ?? path.resolve(__dirname, "../../data/taskscope.db");
-
-const db = new Database(DB_PATH, { readonly: true });
+import { db } from "./db";
+import { buildIndex, search, RawDoc } from "./bm25";
 
 // ── Public contract (frozen) ──────────────────────────────────────────────────
 
@@ -77,12 +26,12 @@ export interface QueryResult {
     rank:              number;
     display_name:      string;
     person_id:         number;
-    score:             number;     // normalized 0–100
+    score:             number;
     raw_score:         number;
-    speed_ratio:       number;     // corpusMedian / personMedian, clamped [0.5, 2.0]
-    median_cycle_days: number;     // person's own median effort days
-    ticket_count:      number;     // total resolved tickets for this person
-    relevant_count:    number;     // neighbor matches in this query
+    speed_ratio:       number;
+    median_cycle_days: number;
+    ticket_count:      number;
+    relevant_count:    number;
     wip:               number;
     eta: {
       p25_days:    number;
@@ -109,18 +58,14 @@ export interface QueryResult {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-/** Recency half-life: 24 months in milliseconds */
-const HALF_LIFE_MS  = 24 * 30.44 * 24 * 3600 * 1000;
-const DECAY_LAMBDA  = Math.LN2 / HALF_LIFE_MS;
-
-const TOP_N               = 35;   // BM25 retrieval count (wider net → more candidates visible)
-const MIN_MATCHES         = 1;    // minimum neighbor matches to rank a candidate
-
-const TOP_CANDIDATES      = 10;   // max candidates returned
-const COMP_BOOST_STRENGTH = 2.0;  // multiplier for component-expertise overlap bonus
-
-const ETA_MIN_LO    = 0.5;  // floor on ETA p25 — "0d" is not a useful estimate
-const ETA_MAX_RATIO = 8.0;  // maximum ETA hi/lo spread shown to a manager
+const HALF_LIFE_MS        = 24 * 30.44 * 24 * 3600 * 1000;
+const DECAY_LAMBDA        = Math.LN2 / HALF_LIFE_MS;
+const TOP_N               = 35;
+const MIN_MATCHES         = 1;
+const TOP_CANDIDATES      = 10;
+const COMP_BOOST_STRENGTH = 2.0;
+const ETA_MIN_LO          = 0.5;
+const ETA_MAX_RATIO       = 8.0;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -146,18 +91,15 @@ function parseJsonArray(raw: string | null): string[] {
   }
 }
 
-function complexityLabel(medianDays: number): ComplexityEstimate["label"] {
+type ComplexityLabel = "Low" | "Medium" | "High" | "Very High";
+
+function complexityLabel(medianDays: number): ComplexityLabel {
   if (medianDays <= 3)  return "Low";
   if (medianDays <= 14) return "Medium";
   if (medianDays <= 60) return "High";
   return "Very High";
 }
 
-/**
- * Best available effort estimate for a ticket.
- * Sub-task discount applied only when falling back to cycle_days, because
- * backlog parking inflates cycle_days massively for sub-tasks.
- */
 function effortProxy(row: {
   work_days:  number | null;
   cycle_days: number | null;
@@ -176,10 +118,7 @@ function recencyDecay(resolvedISO: string | null, nowMs: number): number {
   return Math.exp(-DECAY_LAMBDA * msAgo);
 }
 
-// ── Corpus-wide effort baseline (stable across all queries) ──────────────────
-// Pre-compute once at module load. Used as the globalMedian in speedFactor so
-// speedFactor doesn't vary by query topic (volatile neighbor-set medians shift
-// wildly depending on which 35 tickets come back for a given query).
+// ── Corpus-wide effort baseline (computed once at module load) ────────────────
 
 const _corpusMedianEffort: number = (() => {
   const rows = db.prepare(`
@@ -193,13 +132,6 @@ const _corpusMedianEffort: number = (() => {
 })();
 
 // ── Component-signal detection ────────────────────────────────────────────────
-// Light heuristic: detect which Kafka subsystems the query is about, then boost
-// candidates who have a strong track record in those subsystems. This rewards
-// specialists (e.g. "Add broker-side stream group assignor" → streams expert)
-// over generalists who happen to have a few matching tickets.
-//
-// Boost formula: componentBoost = 1 + COMP_BOOST_STRENGTH × avgFraction
-// where avgFraction = mean of (person's ticket fraction in each detected component).
 
 const COMPONENT_SIGNALS: [RegExp, string][] = [
   [/\bstreams?\b|\bkstream\b|\bktable\b|\btopology\b|\bstate.?store\b|\btask.?assign|\bstate-updater\b/i, "streams"],
@@ -219,7 +151,6 @@ function detectComponents(text: string): Set<string> {
   return found;
 }
 
-// Per-person component fractions: component → fraction of resolved tickets
 const _compFractionCache = new Map<number, Map<string, number>>();
 
 function personCompFractions(personId: number): Map<string, number> {
@@ -242,8 +173,6 @@ function personCompFractions(personId: number): Map<string, number> {
   _compFractionCache.set(personId, fracs);
   return fracs;
 }
-
-// ── Lazy person-global-median cache (per DB session) ─────────────────────────
 
 const _personMedianCache = new Map<number, number>();
 
@@ -274,13 +203,11 @@ function activeWip(personId: number): number {
 export function ask(params: {
   title: string;
   description?: string;
-  /** Exclude this ticket ID from the BM25 index — for leave-one-out evaluation */
   excludeId?: number;
   opts?: { topK?: number; topCandidates?: number };
 }): QueryResult {
   const nowMs = Date.now();
 
-  // Build BM25 index over resolved tickets (excluding the eval ticket if set)
   const rawDocs = db.prepare(`
     SELECT id, key, title, description, components, labels,
            resolved, assignee_id, cycle_days, work_days, type, comment_count
@@ -305,15 +232,13 @@ export function ask(params: {
 
   const maxBM25 = hits[0].score;
 
-  // ── Enrich neighbors ────────────────────────────────────────────────────────
-
   interface Neighbor {
     id:           number;
     key:          string;
     title:        string;
     type:         string;
     similarity:   number;
-    bm25Score:    number;          // raw BM25 score
+    bm25Score:    number;
     effortDays:   number | null;
     commentCount: number;
     components:   string[];
@@ -340,10 +265,6 @@ export function ask(params: {
     };
   });
 
-  // ── Complexity ──────────────────────────────────────────────────────────────
-  // Effort distribution over all neighbors (effort proxy already accounts for
-  // Sub-task discount, so we include all neighbor types here)
-
   const effortValues = neighbors
     .map(n => n.effortDays)
     .filter((v): v is number => v !== null)
@@ -361,8 +282,6 @@ export function ask(params: {
     p75_days:    r1(globalP75),
   };
 
-  // ── Candidate scoring ───────────────────────────────────────────────────────
-
   const byAssignee = new Map<number, Neighbor[]>();
   for (const n of neighbors) {
     if (n.assigneeId == null) continue;
@@ -370,7 +289,6 @@ export function ask(params: {
     byAssignee.get(n.assigneeId)!.push(n);
   }
 
-  // Fetch display names and total resolved ticket counts in one pass
   const assigneeIds = [...byAssignee.keys()];
   const nameRows = assigneeIds.length > 0
     ? db.prepare(
@@ -406,7 +324,6 @@ export function ask(params: {
 
     const wip = activeWip(assigneeId);
 
-    // Person's median effort on their neighbor subset (fallback to global profile)
     const subsetEfforts = nts
       .map(n => n.effortDays)
       .filter((v): v is number => v !== null)
@@ -416,30 +333,20 @@ export function ask(params: {
       ? percentile(subsetEfforts, 50)
       : personGlobalMedian(assigneeId);
 
-    // speedFactor uses corpus-wide median (stable, not query-dependent)
     const speedFactor = personMedian > 0
       ? Math.max(0.5, Math.min(2.0, _corpusMedianEffort / personMedian))
       : 1.0;
 
-    // wipPenalty: continuous — 0 WIP → 1.0, 4 WIP → ≈ 0.63
     const wipPenalty = 1 / (1 + 0.15 * wip);
 
-    // countNorm: mild penalty for high total ticket count to reduce "famous person" bias.
-    // A developer with 113 tickets is probabilistically ~57× more likely to appear in
-    // any top-35 result than someone with 1 ticket; this norm partially corrects that.
     const totalTickets = totalTicketsMap.get(assigneeId) ?? 1;
     const countNorm = 1 / Math.sqrt(Math.log(1 + totalTickets));
 
-    // Weighted relevance sum
     const relevanceSum = nts.reduce(
       (s, n) => s + n.similarity * recencyDecay(n.resolved, nowMs),
       0
     );
 
-    // componentBoost: reward candidates with demonstrated expertise in the same
-    // Kafka subsystem as the query. Overlap = average fraction of their tickets in
-    // each detected component. boost = 1 + COMP_BOOST_STRENGTH × avgOverlap.
-    // No detected components → boost stays 1.0 (no effect).
     let componentBoost = 1.0;
     if (queryComps.size > 0) {
       const fracs = personCompFractions(assigneeId);
@@ -466,20 +373,11 @@ export function ask(params: {
   scored.sort((a, b) => b.rawScore - a.rawScore);
 
   const maxRaw = scored[0]?.rawScore ?? 1;
-
-  // ── Build output candidates ─────────────────────────────────────────────────
-
   const topCandidates = params.opts?.topCandidates ?? TOP_CANDIDATES;
 
   const builtCandidates = scored.slice(0, topCandidates).map((sc, idx) => {
     const nts = sc.neighbors;
 
-    // ETA from this person's neighbor effort distribution.
-    //
-    // Step 1 — winsorize inputs: cap individual effort values at the query's
-    // complexity ceiling × 3 before computing percentiles. This prevents one
-    // outlier ticket (e.g. a 579-day pre-2020 cycle_days) from dragging p75
-    // well above anything a manager would find plausible.
     const winsorCap = Math.max(globalP75 * 3, 30);
     const effortsForEta = nts
       .map(n => n.effortDays != null ? Math.min(n.effortDays, winsorCap) : null)
@@ -495,45 +393,32 @@ export function ask(params: {
       etaMedian = percentile(effortsForEta, 50);
       etaP75    = percentile(effortsForEta, 75);
     } else if (effortsForEta.length >= 1) {
-      // Sparse subset: bracket around available data
       etaP25    = effortsForEta[0] * 0.7;
       etaMedian = effortsForEta[Math.floor((effortsForEta.length - 1) / 2)];
       etaP75    = effortsForEta[effortsForEta.length - 1] * 1.3;
     } else {
-      // No effort data; fall back to global complexity range
       etaP25    = globalP25;
       etaMedian = globalP50;
       etaP75    = globalP75;
     }
 
-    // Step 2 — scale by WIP: more in-flight → slower expected delivery
     const wipInflation = 1 + 0.10 * sc.wip;
     etaP25    = etaP25    * wipInflation;
     etaMedian = etaMedian * wipInflation;
     etaP75    = etaP75    * wipInflation;
 
-    // Step 3 — post-hoc demo-safety clamps (applied after WIP inflation)
-    // a) Cap hi at complexity upper bound × 1.5 — keeps ETA grounded in the
-    //    query's neighborhood, not an outlier ticket's calendar span.
     const complexityHi = globalP75 * 1.5;
     etaP75    = Math.min(etaP75, complexityHi);
-    // b) P25 can't exceed P75 (winsorization + sparse-bracket can invert them)
     etaP25    = Math.min(etaP25, etaP75);
-    // c) Floor lo at ETA_MIN_LO days — "0d" is not a useful estimate
     etaP25    = Math.max(etaP25, ETA_MIN_LO);
-    // d) Ensure P75 >= P25 after the floor (a 0-effort ticket gets floored up,
-    //    which can make P75 < P25 if the cap already pulled P75 to near zero)
     etaP75    = Math.max(etaP75, etaP25);
-    // e) Enforce hi/lo ratio cap — prevents 0.2–203d style ranges
     etaP75    = Math.min(etaP75, etaP25 * ETA_MAX_RATIO);
-    // f) Keep median strictly within [p25, p75]
     etaMedian = Math.min(Math.max(etaMedian, etaP25), etaP75);
 
     etaP25    = r1(etaP25);
     etaMedian = r1(etaMedian);
     etaP75    = r1(etaP75);
 
-    // Top-5 evidence tickets (by BM25 similarity descending)
     const evidence = [...nts]
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 5)
@@ -556,16 +441,10 @@ export function ask(params: {
       ticket_count:      sc.totalTickets,
       relevant_count:    nts.length,
       wip:               sc.wip,
-      eta: {
-        p25_days:    etaP25,
-        median_days: etaMedian,
-        p75_days:    etaP75,
-      },
+      eta: { p25_days: etaP25, median_days: etaMedian, p75_days: etaP75 },
       evidence,
     };
   });
-
-  // ── Neighbor tickets output ─────────────────────────────────────────────────
 
   const neighborTickets = neighbors.map(n => ({
     key:        n.key,
@@ -584,14 +463,4 @@ export function ask(params: {
     candidates:       builtCandidates,
     neighbor_tickets: neighborTickets,
   };
-}
-
-// ── Public API ────────────────────────────────────────────────────────────────
-
-/** Frozen public contract. `queryEngine(text, opts)` → QueryResult. */
-export function queryEngine(
-  text: string,
-  opts?: { topK?: number; topCandidates?: number },
-): QueryResult {
-  return ask({ title: text, opts });
 }
