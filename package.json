@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "fetch": "tsx src/ingest/fetch.ts",
+    "fetch:open": "tsx src/ingest/fetch.ts --open",
     "load": "tsx src/ingest/load.ts",
     "ingest": "npm run fetch && npm run load",
-    "report": "tsx src/report.ts"
+    "report": "tsx src/report.ts",
+    "ask": "tsx src/engine/ask.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0"

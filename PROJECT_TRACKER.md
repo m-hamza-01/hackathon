@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-08
+> Last updated: 2026-08-08 (ingest complete)
 
 ## Project Summary
 TaskScope — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,10 +9,10 @@ TaskScope — hackathon project. Ingests a Jira project's full history (tickets,
 **Status**: Active — pre-hackathon prep (data + scaffold)
 
 ## In Progress
-- [ ] Jira ingest pipeline (fetch → SQLite → sanity report) against Apache Kafka public Jira — ingest-engineer agent
 - [ ] Dashboard scaffold (Next.js in `web/`, mocked data behind the API contract) — dashboard-engineer agent
 
 ## Recently Completed
+- [x] Jira ingest pipeline (fetch → load → report): 2,000 tickets, 431 people, data/taskscope.db live — (2026-08-08)
 - [x] Validated Apache Jira API: anonymous search works, ~10,146 resolved+assigned KAFKA issues, full comments AND changelog inline in one paginated call — (2026-08-08)
 - [x] Engine scaffold: package.json, tsconfig, .gitignore — (2026-08-08)
 
