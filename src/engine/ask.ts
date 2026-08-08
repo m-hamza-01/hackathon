@@ -10,7 +10,7 @@
 import Database from "better-sqlite3";
 import { fileURLToPath } from "url";
 import path from "path";
-import { ask, AskResult } from "./engine.js";
+import { ask, queryEngine, QueryResult } from "./engine.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH   = path.resolve(__dirname, "../../data/taskscope.db");
@@ -42,7 +42,7 @@ const DEMO_QUERIES = [
 // ── Normal query ──────────────────────────────────────────────────────────────
 
 function runQuery(title: string, desc: string) {
-  const result = ask({ title, description: desc });
+  const result = queryEngine(`${title} ${desc}`.trim());
   console.log(JSON.stringify(result, null, 2));
 }
 
@@ -82,7 +82,7 @@ function runEval() {
   }> = [];
 
   for (const ticket of evalTickets) {
-    const result: AskResult = ask({
+    const result: QueryResult = ask({
       title:       ticket.title,
       description: ticket.description ?? "",
       excludeId:   ticket.id,
@@ -91,7 +91,7 @@ function runEval() {
     const candidates = result.candidates;
     const trueAssignee = ticket.display_name;
 
-    const rankIdx = candidates.findIndex(c => c.displayName === trueAssignee);
+    const rankIdx = candidates.findIndex(c => c.display_name === trueAssignee);
     const rank = rankIdx === -1 ? null : rankIdx + 1;
 
     if (rank === 1) hit1++;
@@ -101,7 +101,7 @@ function runEval() {
       key:          ticket.key,
       trueAssignee,
       rank,
-      top3: candidates.slice(0, 3).map(c => c.displayName),
+      top3: candidates.slice(0, 3).map(c => c.display_name),
     });
   }
 
@@ -128,15 +128,15 @@ function runDemo() {
     console.log("═".repeat(72));
     const result = ask({ title: q.title, description: q.desc });
     const { complexity, candidates } = result;
-    console.log(`\nComplexity: ${complexity.label}  (median ${complexity.medianDays}d, range ${complexity.rangeDays[0]}–${complexity.rangeDays[1]}d)`);
+    console.log(`\nComplexity: ${complexity.label}  (median ${complexity.median_days}d, range ${complexity.p25_days}–${complexity.p75_days}d)`);
     console.log(`\nTop candidates:`);
     for (const c of candidates.slice(0, 5)) {
       console.log(
-        `  ${String(c.matchScore).padStart(3)}/100  ${c.displayName.padEnd(24)}` +
-        `  matches=${c.matchCount}  wip=${c.activeWip}  eta=${c.eta.lo}–${c.eta.hi}d`
+        `  ${String(c.score).padStart(3)}/100  ${c.display_name.padEnd(24)}` +
+        `  matches=${c.relevant_count}  wip=${c.wip}  eta=${c.eta.p25_days}–${c.eta.p75_days}d`
       );
       for (const e of c.evidence.slice(0, 2)) {
-        console.log(`          [${e.key}] ${e.cycleDays != null ? e.cycleDays + "d" : "N/A"}  "${e.title.slice(0, 60)}"`);
+        console.log(`          [${e.key}] ${e.cycle_days != null ? e.cycle_days + "d" : "N/A"}  "${e.title.slice(0, 60)}"`);
       }
     }
   }

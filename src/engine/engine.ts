@@ -58,41 +58,48 @@ const DB_PATH   = path.resolve(__dirname, "../../data/taskscope.db");
 
 const db = new Database(DB_PATH, { readonly: true });
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Public contract (frozen) ──────────────────────────────────────────────────
 
-export interface ComplexityEstimate {
-  label: "Low" | "Medium" | "High" | "Very High";
-  medianDays: number;
-  rangeDays: [number, number];  // [p25, p75]
-}
-
-export interface EvidenceTicket {
-  key: string;
-  title: string;
-  cycleDays: number | null;   // effort proxy value
-  resolved: string | null;
-}
-
-export interface Candidate {
-  displayName: string;
-  matchScore: number;        // normalized 0–100
-  matchCount: number;        // how many neighbor tickets this person was assigned
-  activeWip: number;
-  eta: { lo: number; hi: number };
-  evidence: EvidenceTicket[];
-}
-
-export interface AskResult {
-  complexity: ComplexityEstimate;
-  candidates: Candidate[];
-  /** Raw neighbor list for the LLM synthesis layer */
-  neighbors: Array<{
-    key: string;
-    title: string;
-    similarity: number;
-    effortDays: number | null;
-    commentCount: number;
-    components: string[];
+export interface QueryResult {
+  query: string;
+  complexity: {
+    label:       "Low" | "Medium" | "High" | "Very High";
+    sample_size: number;
+    p25_days:    number;
+    median_days: number;
+    p75_days:    number;
+  };
+  candidates: Array<{
+    rank:              number;
+    display_name:      string;
+    person_id:         number;
+    score:             number;     // normalized 0–100
+    raw_score:         number;
+    speed_ratio:       number;     // corpusMedian / personMedian, clamped [0.5, 2.0]
+    median_cycle_days: number;     // person's own median effort days
+    ticket_count:      number;     // total resolved tickets for this person
+    relevant_count:    number;     // neighbor matches in this query
+    wip:               number;
+    eta: {
+      p25_days:    number;
+      median_days: number;
+      p75_days:    number;
+    };
+    evidence: Array<{
+      key:        string;
+      title:      string;
+      bm25_score: number;
+      resolved:   string | null;
+      cycle_days: number | null;
+    }>;
+  }>;
+  neighbor_tickets: Array<{
+    key:        string;
+    title:      string;
+    bm25_score: number;
+    assignee:   string;
+    cycle_days: number | null;
+    resolved:   string | null;
   }>;
 }
 
@@ -261,7 +268,8 @@ export function ask(params: {
   description?: string;
   /** Exclude this ticket ID from the BM25 index — for leave-one-out evaluation */
   excludeId?: number;
-}): AskResult {
+  opts?: { topK?: number; topCandidates?: number };
+}): QueryResult {
   const nowMs = Date.now();
 
   // Build BM25 index over resolved tickets (excluding the eval ticket if set)
@@ -280,9 +288,10 @@ export function ask(params: {
 
   if (hits.length === 0) {
     return {
-      complexity: { label: "Medium", medianDays: 15, rangeDays: [3, 60] },
-      candidates: [],
-      neighbors:  [],
+      query:      queryText,
+      complexity: { label: "Medium", sample_size: 0, p25_days: 3, median_days: 15, p75_days: 60 },
+      candidates:       [],
+      neighbor_tickets: [],
     };
   }
 
@@ -296,6 +305,7 @@ export function ask(params: {
     title:        string;
     type:         string;
     similarity:   number;
+    bm25Score:    number;          // raw BM25 score
     effortDays:   number | null;
     commentCount: number;
     components:   string[];
@@ -311,10 +321,10 @@ export function ask(params: {
       title:        d.title,
       type:         d.type ?? "Unknown",
       similarity:   maxBM25 > 0 ? hit.score / maxBM25 : 0,
+      bm25Score:    hit.score,
       effortDays:   effortProxy(d),
       commentCount: d.comment_count ?? 0,
       components:   parseJsonArray(
-        // components not stored on DocMeta; re-fetch from rawDocs lookup
         rawDocs.find(r => r.id === d.id)?.components ?? null
       ).map(c => c.trim()),
       assigneeId:   d.assignee_id,
@@ -335,10 +345,12 @@ export function ask(params: {
   const globalP25 = effortValues.length > 0 ? percentile(effortValues, 25) : 3;
   const globalP75 = effortValues.length > 0 ? percentile(effortValues, 75) : 60;
 
-  const complexity: ComplexityEstimate = {
-    label:      complexityLabel(globalP50),
-    medianDays: r1(globalP50),
-    rangeDays:  [r1(globalP25), r1(globalP75)],
+  const complexity = {
+    label:       complexityLabel(globalP50),
+    sample_size: effortValues.length,
+    p25_days:    r1(globalP25),
+    median_days: r1(globalP50),
+    p75_days:    r1(globalP75),
   };
 
   // ── Candidate scoring ───────────────────────────────────────────────────────
@@ -369,11 +381,14 @@ export function ask(params: {
   const totalTicketsMap = new Map(countRows.map(r => [r.assignee_id, r.cnt]));
 
   interface ScoredPerson {
-    assigneeId:  number;
-    displayName: string;
-    rawScore:    number;
-    neighbors:   Neighbor[];
-    wip:         number;
+    assigneeId:   number;
+    displayName:  string;
+    rawScore:     number;
+    speedFactor:  number;
+    personMedian: number;
+    totalTickets: number;
+    neighbors:    Neighbor[];
+    wip:          number;
   }
 
   const scored: ScoredPerson[] = [];
@@ -430,9 +445,12 @@ export function ask(params: {
 
     scored.push({
       assigneeId,
-      displayName: displayNames.get(assigneeId) ?? `Person#${assigneeId}`,
+      displayName:  displayNames.get(assigneeId) ?? `Person#${assigneeId}`,
       rawScore,
-      neighbors:   nts,
+      speedFactor,
+      personMedian,
+      totalTickets,
+      neighbors:    nts,
       wip,
     });
   }
@@ -443,7 +461,9 @@ export function ask(params: {
 
   // ── Build output candidates ─────────────────────────────────────────────────
 
-  const candidates: Candidate[] = scored.slice(0, TOP_CANDIDATES).map(sc => {
+  const topCandidates = params.opts?.topCandidates ?? TOP_CANDIDATES;
+
+  const builtCandidates = scored.slice(0, topCandidates).map((sc, idx) => {
     const nts = sc.neighbors;
 
     // ETA from this person's neighbor effort distribution
@@ -452,57 +472,91 @@ export function ask(params: {
       .filter((v): v is number => v !== null)
       .sort((a, b) => a - b);
 
-    let etaLo: number;
-    let etaHi: number;
+    let etaP25: number;
+    let etaMedian: number;
+    let etaP75: number;
 
     if (effortsForEta.length >= 3) {
-      etaLo = percentile(effortsForEta, 25);
-      etaHi = percentile(effortsForEta, 75);
+      etaP25    = percentile(effortsForEta, 25);
+      etaMedian = percentile(effortsForEta, 50);
+      etaP75    = percentile(effortsForEta, 75);
     } else if (effortsForEta.length >= 1) {
-      // Sparse subset: bracket around the available data
-      etaLo = effortsForEta[0] * 0.5;
-      etaHi = effortsForEta[effortsForEta.length - 1] * 1.5;
+      // Sparse subset: bracket around available data
+      etaP25    = effortsForEta[0] * 0.7;
+      etaMedian = effortsForEta[Math.floor((effortsForEta.length - 1) / 2)];
+      etaP75    = effortsForEta[effortsForEta.length - 1] * 1.3;
     } else {
-      // No effort data for neighbors; fall back to global complexity range
-      etaLo = globalP25;
-      etaHi = globalP75;
+      // No effort data; fall back to global complexity range
+      etaP25    = globalP25;
+      etaMedian = globalP50;
+      etaP75    = globalP75;
     }
 
-    // Widen by WIP: more concurrent work → slower expected delivery
-    etaLo = etaLo / (1 + 0.10 * sc.wip);
-    etaHi = etaHi * (1 + 0.20 * sc.wip);
+    // Scale by WIP: more in-flight → slower expected delivery
+    const wipInflation = 1 + 0.10 * sc.wip;
+    etaP25    = r1(etaP25    * wipInflation);
+    etaMedian = r1(etaMedian * wipInflation);
+    etaP75    = r1(etaP75    * wipInflation);
 
-    // Top-5 evidence tickets (by similarity)
-    const evidence: EvidenceTicket[] = [...nts]
+    // Top-5 evidence tickets (by BM25 similarity descending)
+    const evidence = [...nts]
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 5)
       .map(n => ({
-        key:       n.key,
-        title:     n.title,
-        cycleDays: n.effortDays != null ? r1(n.effortDays) : null,
-        resolved:  n.resolved,
+        key:        n.key,
+        title:      n.title,
+        bm25_score: Math.round(n.bm25Score * 1000) / 1000,
+        resolved:   n.resolved,
+        cycle_days: n.effortDays != null ? r1(n.effortDays) : null,
       }));
 
     return {
-      displayName: sc.displayName,
-      matchScore:  Math.round((sc.rawScore / maxRaw) * 100),
-      matchCount:  nts.length,
-      activeWip:   sc.wip,
-      eta:         { lo: r1(etaLo), hi: r1(etaHi) },
+      rank:              idx + 1,
+      display_name:      sc.displayName,
+      person_id:         sc.assigneeId,
+      score:             Math.round((sc.rawScore / maxRaw) * 100),
+      raw_score:         Math.round(sc.rawScore * 10000) / 10000,
+      speed_ratio:       Math.round(sc.speedFactor * 100) / 100,
+      median_cycle_days: r1(sc.personMedian),
+      ticket_count:      sc.totalTickets,
+      relevant_count:    nts.length,
+      wip:               sc.wip,
+      eta: {
+        p25_days:    etaP25,
+        median_days: etaMedian,
+        p75_days:    etaP75,
+      },
       evidence,
     };
   });
 
-  // ── Neighbor output for synthesis layer ────────────────────────────────────
+  // ── Neighbor tickets output ─────────────────────────────────────────────────
 
-  const neighborOut = neighbors.map(n => ({
-    key:          n.key,
-    title:        n.title,
-    similarity:   Math.round(n.similarity * 1000) / 1000,
-    effortDays:   n.effortDays != null ? r1(n.effortDays) : null,
-    commentCount: n.commentCount,
-    components:   n.components,
+  const neighborTickets = neighbors.map(n => ({
+    key:        n.key,
+    title:      n.title,
+    bm25_score: Math.round(n.bm25Score * 1000) / 1000,
+    assignee:   n.assigneeId != null
+                  ? (displayNames.get(n.assigneeId) ?? `Person#${n.assigneeId}`)
+                  : "Unassigned",
+    cycle_days: n.effortDays != null ? r1(n.effortDays) : null,
+    resolved:   n.resolved,
   }));
 
-  return { complexity, candidates, neighbors: neighborOut };
+  return {
+    query:            queryText,
+    complexity,
+    candidates:       builtCandidates,
+    neighbor_tickets: neighborTickets,
+  };
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/** Frozen public contract. `queryEngine(text, opts)` → QueryResult. */
+export function queryEngine(
+  text: string,
+  opts?: { topK?: number; topCandidates?: number },
+): QueryResult {
+  return ask({ title: text, opts });
 }
