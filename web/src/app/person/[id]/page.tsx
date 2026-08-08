@@ -91,18 +91,25 @@ export default function PersonPage() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      fetch(`/api/person/${id}`).then((r) => {
-        if (!r.ok) throw new Error("Not found");
+    // Fetched independently so a person 404 doesn't blank the header stats.
+    fetch("/api/team")
+      .then((r) => r.json())
+      .then((d) => setMeta(d.meta))
+      .catch(() => {});
+    fetch(`/api/person/${id}`)
+      .then((r) => {
+        if (r.status === 404) throw new Error("notfound");
+        if (!r.ok) throw new Error("network");
         return r.json();
-      }),
-      fetch("/api/team").then((r) => r.json()),
-    ])
-      .then(([personData, teamData]) => {
-        setData(personData);
-        setMeta(teamData.meta);
       })
-      .catch(() => setError("Could not load engineer profile."));
+      .then(setData)
+      .catch((e: Error) =>
+        setError(
+          e.message === "notfound"
+            ? "No engineer with this ID in the dataset — they may be below the roster cutoff. Head back to all engineers."
+            : "Could not load engineer profile — the server may be unreachable. Refresh to retry.",
+        ),
+      );
   }, [id]);
 
   const p = data?.person;

@@ -22,7 +22,6 @@ declare global {
 function openDb(): Database.Database {
   if (!global._taskscope_db) {
     global._taskscope_db = new Database(DB_PATH, { readonly: true });
-    global._taskscope_db.pragma("journal_mode = WAL");
   }
   return global._taskscope_db;
 }

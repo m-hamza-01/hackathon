@@ -437,7 +437,10 @@ export async function synthesizeAsk(
     }
 
     return assemble(qr, prose);
-  } catch {
+  } catch (err) {
+    // Key was present but the call failed — log so this is distinguishable
+    // from the deliberate no-key fallback.
+    console.warn("[synthesize] LLM call failed, using template fallback:", err);
     return templateFallback(qr);
   }
 }

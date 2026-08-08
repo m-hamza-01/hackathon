@@ -114,7 +114,9 @@ function effortProxy(row: {
 
 function recencyDecay(resolvedISO: string | null, nowMs: number): number {
   if (!resolvedISO) return 0.1;
-  const msAgo = Math.max(0, nowMs - new Date(resolvedISO).getTime());
+  const t = new Date(resolvedISO).getTime();
+  if (isNaN(t)) return 0.1; // unparseable timestamp — same fallback as missing
+  const msAgo = Math.max(0, nowMs - t);
   return Math.exp(-DECAY_LAMBDA * msAgo);
 }
 
@@ -208,13 +210,14 @@ export function ask(params: {
 }): QueryResult {
   const nowMs = Date.now();
 
+  // id != -1 is always true (Jira ids are positive), so one bound-parameter
+  // statement covers both the exclude and no-exclude cases.
   const rawDocs = db.prepare(`
     SELECT id, key, title, description, components, labels,
            resolved, assignee_id, cycle_days, work_days, type, comment_count
     FROM tickets
-    WHERE resolved IS NOT NULL
-    ${params.excludeId !== undefined ? `AND id != ${params.excludeId}` : ""}
-  `).all() as RawDoc[];
+    WHERE resolved IS NOT NULL AND id != ?
+  `).all(params.excludeId ?? -1) as RawDoc[];
 
   const idx        = buildIndex(rawDocs);
   const queryText  = [params.title, params.description].filter(Boolean).join(" ");

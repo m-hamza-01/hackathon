@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { ask } from "@/lib/engine";
 import { synthesizeAsk } from "@/lib/synthesize";
 
+export async function GET() {
+  return NextResponse.json(
+    { error: "Use POST with a JSON body: {title, description?}" },
+    { status: 405 }
+  );
+}
+
 export async function POST(req: Request) {
   let title: string;
   let description: string | undefined;

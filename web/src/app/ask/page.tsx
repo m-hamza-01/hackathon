@@ -182,7 +182,12 @@ export default function AskPage() {
   }, []);
 
   // Demo deep-links: /ask?q=<title>&d=<description> runs the query on load.
+  // Ref guard: StrictMode double-mounts effects in dev, which would fire the
+  // POST (and its LLM call) twice.
+  const deepLinkRan = useRef(false);
   useEffect(() => {
+    if (deepLinkRan.current) return;
+    deepLinkRan.current = true;
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");
     if (q) {

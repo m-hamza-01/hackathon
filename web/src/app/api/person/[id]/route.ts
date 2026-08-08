@@ -6,10 +6,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const numId = parseInt(id, 10);
-  if (isNaN(numId)) {
+  // Full-string match: parseInt would accept "123abc" and "4.5" as 123 / 4.
+  if (!/^\d+$/.test(id)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  const numId = parseInt(id, 10);
 
   try {
     const data = getPerson(numId);
