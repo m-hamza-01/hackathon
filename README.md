@@ -19,6 +19,6 @@ Demo dataset: Apache Kafka's public Jira (~10k resolved, assigned tickets), cont
 
 ## API contract (web ↔ engine)
 
-- `GET /api/team` — roster with per-person stats (resolved count, median cycle days, active WIP, top components, type mix)
+- `GET /api/team` — roster with per-person stats (resolved count, median cycle days, active WIP, top components, type mix) + `meta {totalTickets, dateRange}` for header aggregates
 - `GET /api/person/[id]` — full profile: trend series, recent tickets, collaborators
 - `POST /api/ask` `{title, description}` — `{complexity{label, medianDays, rangeDays, rationale}, clarifyingQuestions[], candidates[{personId, name, matchScore, eta, activeWip, evidence[{key,title,cycleDays}], why}]}`

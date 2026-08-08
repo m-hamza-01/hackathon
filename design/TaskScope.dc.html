@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,300..800;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:oklch(0.19 0.007 90);}
+*{box-sizing:border-box;}
+a{color:oklch(0.78 0.11 155);text-decoration:none;}
+a:hover{color:oklch(0.86 0.11 155);}
+::selection{background:oklch(0.45 0.09 155);color:#fff;}
+@keyframes ts-pulse{0%,100%{opacity:.28}50%{opacity:.75}}
+@keyframes ts-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ts-sweep{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:oklch(0.19 0.007 90);color:oklch(0.93 0.006 90);font-family:'Libre Franklin',system-ui,sans-serif;-webkit-font-smoothing:antialiased;">
+
+  <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;height:60px;background:oklch(0.19 0.007 90 / 0.92);backdrop-filter:blur(10px);border-bottom:1px solid oklch(0.3 0.008 90);">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:22px;height:22px;border-radius:3px;border:1.5px solid oklch(0.74 0.13 155);display:grid;place-items:center;">
+        <div style="width:8px;height:8px;background:oklch(0.74 0.13 155);border-radius:1px;"></div>
+      </div>
+      <div style="font-size:14.5px;font-weight:650;letter-spacing:-0.01em;">TaskScope</div>
+      <div style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;color:oklch(0.6 0.008 90);letter-spacing:0.04em;padding-left:12px;border-left:1px solid oklch(0.3 0.008 90);">APACHE&nbsp;KAFKA&nbsp;· 2,014&nbsp;RESOLVED</div>
+    </div>
+    <nav style="display:flex;align-items:center;gap:4px;">
+      <button onClick="{{ goTeam }}" style="{{ navTeamStyle }}">Team</button>
+      <button onClick="{{ goAsk }}" style="{{ navAskStyle }}">Ask</button>
+    </nav>
+  </header>
+
+  <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ true }}">
+  <main style="max-width:1400px;margin:0 auto;padding:36px 32px 80px;">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;margin-bottom:28px;">
+      <div>
+        <h1 style="margin:0 0 8px;font-size:30px;font-weight:700;letter-spacing:-0.025em;line-height:1.1;">Team overview</h1>
+        <p style="margin:0;max-width:56ch;font-size:13.5px;line-height:1.55;color:oklch(0.66 0.008 90);text-wrap:pretty;">Built from resolved Jira tickets. These are working patterns, not performance ratings — use them to start a conversation, not to close one.</p>
+      </div>
+      <div style="display:flex;gap:0;border:1px solid oklch(0.3 0.008 90);border-radius:6px;overflow:hidden;flex:none;">
+        <div style="padding:12px 20px;border-right:1px solid oklch(0.3 0.008 90);">
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:19px;font-weight:500;">14</div>
+          <div style="font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.6 0.008 90);margin-top:3px;">engineers</div>
+        </div>
+        <div style="padding:12px 20px;border-right:1px solid oklch(0.3 0.008 90);">
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:19px;font-weight:500;">2,014</div>
+          <div style="font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.6 0.008 90);margin-top:3px;">tickets</div>
+        </div>
+        <div style="padding:12px 20px;">
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:19px;font-weight:500;">2021 – 2024</div>
+          <div style="font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.6 0.008 90);margin-top:3px;">range</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(190px,1.5fr) 92px 128px 104px 132px minmax(210px,1.3fr);gap:20px;align-items:center;padding:0 16px 10px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.58 0.008 90);border-bottom:1px solid oklch(0.3 0.008 90);">
+      <div>Engineer</div>
+      <div style="text-align:right;">Resolved</div>
+      <div style="text-align:right;">Median cycle</div>
+      <div style="text-align:right;">In flight</div>
+      <div>Work mix</div>
+      <div>Components</div>
+    </div>
+
+    <sc-for list="{{ people }}" as="p" hint-placeholder-count="8">
+      <div onClick="{{ p.open }}" style="display:grid;grid-template-columns:minmax(190px,1.5fr) 92px 128px 104px 132px minmax(210px,1.3fr);gap:20px;align-items:center;padding:14px 16px;border-bottom:1px solid oklch(0.26 0.008 90);cursor:pointer;transition:background .12s;" style-hover="background:oklch(0.23 0.008 90);">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0;">
+          <div style="width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Spline Sans Mono',monospace;font-size:10.5px;font-weight:600;color:oklch(0.2 0.007 90);background:{{ p.tint }};">{{ p.initials }}</div>
+          <div style="min-width:0;">
+            <div style="font-size:13.5px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</div>
+            <sc-if value="{{ p.sparse }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:10px;color:oklch(0.62 0.09 60);margin-top:2px;letter-spacing:0.03em;">sparse history</div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:14px;">{{ p.ticketsResolved }}</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:9px;">
+          <div style="flex:1;height:3px;background:oklch(0.27 0.008 90);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;background:oklch(0.62 0.05 90);width:{{ p.cyclePct }};"></div>
+          </div>
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:13px;flex:none;">{{ p.cycleLabel }}</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:3px;">
+          <sc-for list="{{ p.pips }}" as="pip" hint-placeholder-count="3">
+            <div style="width:4px;height:14px;border-radius:1px;background:{{ pip.c }};"></div>
+          </sc-for>
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.7 0.008 90);margin-left:5px;">{{ p.activeWip }}</div>
+        </div>
+        <div style="display:flex;height:8px;border-radius:2px;overflow:hidden;gap:1px;" title="{{ p.mixTitle }}">
+          <sc-for list="{{ p.segs }}" as="s" hint-placeholder-count="3">
+            <div style="background:{{ s.c }};width:{{ s.w }};"></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <sc-for list="{{ p.topComponents }}" as="c" hint-placeholder-count="3">
+            <span style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;padding:2.5px 7px;border-radius:3px;background:oklch(0.26 0.008 90);color:oklch(0.75 0.008 90);white-space:nowrap;">{{ c }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;padding:0 16px;font-size:10.5px;color:oklch(0.58 0.008 90);">
+      <sc-for list="{{ legend }}" as="l" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:2px;background:{{ l.c }};"></div>{{ l.label }}</div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isPerson }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1400px;margin:0 auto;padding:28px 32px 80px;">
+    <button onClick="{{ goTeam }}" style="background:none;border:none;padding:0;margin:0 0 22px;cursor:pointer;font-family:'Spline Sans Mono',monospace;font-size:11px;color:oklch(0.62 0.008 90);letter-spacing:0.04em;">&larr;&nbsp;&nbsp;ALL ENGINEERS</button>
+
+    <div style="display:flex;align-items:flex-start;gap:18px;margin-bottom:30px;">
+      <div style="width:56px;height:56px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Spline Sans Mono',monospace;font-size:19px;font-weight:600;color:oklch(0.2 0.007 90);background:{{ person.tint }};">{{ person.initials }}</div>
+      <div style="flex:1;min-width:0;">
+        <h1 style="margin:0 0 6px;font-size:30px;font-weight:700;letter-spacing:-0.025em;line-height:1.1;">{{ person.name }}</h1>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <sc-for list="{{ person.topComponents }}" as="c" hint-placeholder-count="4">
+            <span style="font-family:'Spline Sans Mono',monospace;font-size:11px;padding:3px 8px;border-radius:3px;background:oklch(0.26 0.008 90);color:oklch(0.76 0.008 90);">{{ c }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:oklch(0.3 0.008 90);border:1px solid oklch(0.3 0.008 90);border-radius:6px;overflow:hidden;margin-bottom:26px;">
+      <sc-for list="{{ person.stats }}" as="s" hint-placeholder-count="4">
+        <div style="background:oklch(0.215 0.007 90);padding:16px 18px;">
+          <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.6 0.008 90);margin-bottom:7px;">{{ s.label }}</div>
+          <div style="font-family:'Spline Sans Mono',monospace;font-size:24px;font-weight:500;line-height:1;">{{ s.value }}</div>
+          <div style="font-size:11px;color:oklch(0.58 0.008 90);margin-top:6px;">{{ s.note }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:24px;min-width:0;">
+
+        <section style="border:1px solid oklch(0.3 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);padding:20px 22px 14px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:4px;">
+            <h2 style="margin:0;font-size:14px;font-weight:650;letter-spacing:-0.01em;">Median cycle time by month</h2>
+            <span style="font-size:11px;color:oklch(0.58 0.008 90);">gaps = no resolved tickets that month</span>
+          </div>
+          <svg viewBox="0 0 720 170" style="width:100%;height:auto;display:block;overflow:visible;font-family:'Spline Sans Mono',monospace;">
+            <sc-for list="{{ person.gridLines }}" as="g" hint-placeholder-count="4">
+              <g>
+                <line x1="34" y1="{{ g.y }}" x2="720" y2="{{ g.y }}" stroke="oklch(0.28 0.008 90)" stroke-width="1"></line>
+                <text x="26" y="{{ g.ty }}" text-anchor="end" font-size="10" fill="oklch(0.55 0.008 90)">{{ g.label }}</text>
+              </g>
+            </sc-for>
+            <path d="{{ person.areaPath }}" fill="oklch(0.74 0.13 155 / 0.12)"></path>
+            <path d="{{ person.linePath }}" fill="none" stroke="oklch(0.74 0.13 155)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            <sc-for list="{{ person.points }}" as="pt" hint-placeholder-count="12">
+              <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="2.75" fill="oklch(0.19 0.007 90)" stroke="oklch(0.74 0.13 155)" stroke-width="1.5"></circle>
+            </sc-for>
+            <sc-for list="{{ person.xTicks }}" as="t" hint-placeholder-count="5">
+              <text x="{{ t.x }}" y="164" text-anchor="middle" font-size="10" fill="oklch(0.55 0.008 90)">{{ t.label }}</text>
+            </sc-for>
+          </svg>
+        </section>
+
+        <section style="border:1px solid oklch(0.3 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);overflow:hidden;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:18px 22px 14px;">
+            <h2 style="margin:0;font-size:14px;font-weight:650;letter-spacing:-0.01em;">Recent resolved tickets</h2>
+            <span style="font-family:'Spline Sans Mono',monospace;font-size:11px;color:oklch(0.58 0.008 90);">{{ person.ticketCount }} shown</span>
+          </div>
+          <sc-for list="{{ person.recentTickets }}" as="t" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:96px minmax(0,1fr) 108px 92px 92px;gap:14px;align-items:center;padding:11px 22px;border-top:1px solid oklch(0.26 0.008 90);">
+              <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.78 0.11 155);">{{ t.key }}</a>
+              <div style="font-size:13px;line-height:1.4;color:oklch(0.88 0.006 90);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:pretty;">{{ t.title }}</div>
+              <div><span style="font-size:10.5px;padding:2.5px 8px;border-radius:3px;background:{{ t.typeBg }};color:{{ t.typeFg }};white-space:nowrap;">{{ t.type }}</span></div>
+              <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:{{ t.daysColor }};">{{ t.days }}</div>
+              <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.56 0.008 90);">{{ t.resolved }}</div>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+
+      <section style="border:1px solid oklch(0.3 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);overflow:hidden;">
+        <div style="padding:18px 20px 12px;">
+          <h2 style="margin:0 0 4px;font-size:14px;font-weight:650;letter-spacing:-0.01em;">Frequent collaborators</h2>
+          <p style="margin:0;font-size:11.5px;line-height:1.45;color:oklch(0.58 0.008 90);">Shared comment threads on the same tickets.</p>
+        </div>
+        <sc-for list="{{ person.collaborators }}" as="c" hint-placeholder-count="4">
+          <div onClick="{{ c.open }}" style="display:flex;align-items:center;gap:11px;padding:11px 20px;border-top:1px solid oklch(0.26 0.008 90);cursor:pointer;" style-hover="background:oklch(0.235 0.008 90);">
+            <div style="width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Spline Sans Mono',monospace;font-size:9.5px;font-weight:600;color:oklch(0.2 0.007 90);background:{{ c.tint }};">{{ c.initials }}</div>
+            <div style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.name }}</div>
+            <div style="font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.6 0.008 90);flex:none;">{{ c.sharedTickets }}</div>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+  </main>
+  </sc-if>
+
+  <sc-if value="{{ isAsk }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:1120px;margin:0 auto;padding:40px 32px 90px;">
+    <div style="margin-bottom:26px;">
+      <h1 style="margin:0 0 8px;font-size:30px;font-weight:700;letter-spacing:-0.025em;line-height:1.1;">Who should pick this up?</h1>
+      <p style="margin:0;max-width:62ch;font-size:13.5px;line-height:1.55;color:oklch(0.66 0.008 90);text-wrap:pretty;">Describe the task. TaskScope estimates it against similar past work and suggests candidates — with the tickets behind every suggestion. The call is yours.</p>
+    </div>
+
+    <div style="border:1px solid oklch(0.3 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);padding:6px 6px 14px;margin-bottom:34px;">
+      <input value="{{ titleVal }}" onChange="{{ onTitle }}" placeholder="Task title" style="width:100%;border:none;background:none;color:oklch(0.95 0.006 90);font-family:'Libre Franklin',sans-serif;font-size:17px;font-weight:550;letter-spacing:-0.012em;padding:14px 16px 8px;outline:none;">
+      <textarea value="{{ descVal }}" onChange="{{ onDesc }}" placeholder="What needs to happen, and what's known so far…" rows="3" style="width:100%;border:none;background:none;color:oklch(0.82 0.006 90);font-family:'Libre Franklin',sans-serif;font-size:13.5px;line-height:1.6;padding:0 16px 12px;outline:none;resize:vertical;"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px 0;border-top:1px solid oklch(0.27 0.008 90);">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-left:4px;">
+          <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="2">
+            <button onClick="{{ ex.use }}" style="font-size:11.5px;padding:5px 10px;border-radius:20px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;font-family:'Libre Franklin',sans-serif;" style-hover="border-color:oklch(0.5 0.05 155);color:oklch(0.88 0.006 90);">{{ ex.label }}</button>
+          </sc-for>
+        </div>
+        <button onClick="{{ submit }}" style="flex:none;font-family:'Libre Franklin',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:5px;border:none;background:oklch(0.74 0.13 155);color:oklch(0.19 0.02 155);cursor:pointer;" style-hover="background:oklch(0.8 0.13 155);">Find candidates</button>
+      </div>
+    </div>
+
+    <sc-if value="{{ showIdle }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px dashed oklch(0.3 0.008 90);border-radius:6px;padding:44px 32px;text-align:center;">
+        <div style="font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:0.08em;color:oklch(0.55 0.008 90);">NOTHING ASKED YET</div>
+        <p style="margin:12px auto 0;max-width:46ch;font-size:13px;line-height:1.6;color:oklch(0.6 0.008 90);text-wrap:pretty;">Every estimate and candidate you see will cite the past tickets it came from. If the history is thin, the answer will say so.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;font-family:'Spline Sans Mono',monospace;font-size:11.5px;letter-spacing:0.05em;color:oklch(0.7 0.09 155);margin-bottom:18px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:oklch(0.74 0.13 155);animation:ts-pulse 1.1s ease-in-out infinite;"></div>
+          MATCHING AGAINST 2,014 RESOLVED TICKETS…
+        </div>
+        <sc-for list="{{ skeletons }}" as="sk" hint-placeholder-count="3">
+          <div style="height:{{ sk.h }};border:1px solid oklch(0.28 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);margin-bottom:14px;position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0;width:35%;background:linear-gradient(90deg,transparent,oklch(0.28 0.008 90 / 0.7),transparent);animation:ts-sweep 1.5s linear infinite;"></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid oklch(0.42 0.1 30);border-radius:6px;background:oklch(0.24 0.03 30);padding:22px 24px;display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.16 30);margin-top:6px;flex:none;"></div>
+        <div>
+          <div style="font-size:14px;font-weight:650;margin-bottom:5px;">The matching engine didn't answer</div>
+          <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:oklch(0.75 0.02 30);max-width:56ch;">Your task text is still here. Nothing was sent to anyone, and no estimate was produced — retry, or check the service and try again.</p>
+          <button onClick="{{ submit }}" style="font-family:'Libre Franklin',sans-serif;font-size:12.5px;font-weight:600;padding:8px 18px;border-radius:5px;border:1px solid oklch(0.5 0.08 30);background:none;color:oklch(0.88 0.04 30);cursor:pointer;">Retry</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:34px;animation:ts-in .35s ease both;">
+
+      <section style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch;">
+        <div style="border:1px solid oklch(0.3 0.008 90);border-radius:6px;background:oklch(0.215 0.007 90);padding:20px 22px;">
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.58 0.008 90);margin-bottom:14px;">Estimated complexity</div>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:20px;">
+            <div style="font-size:32px;font-weight:700;letter-spacing:-0.03em;line-height:1;color:{{ complexity.color }};">{{ complexity.label }}</div>
+            <div style="font-family:'Spline Sans Mono',monospace;font-size:13px;color:oklch(0.68 0.008 90);">{{ complexity.rangeText }}</div>
+          </div>
+          <div style="position:relative;height:34px;margin-bottom:8px;">
+            <div style="position:absolute;left:0;right:0;top:14px;height:4px;border-radius:2px;background:oklch(0.27 0.008 90);"></div>
+            <div style="position:absolute;top:14px;height:4px;border-radius:2px;background:{{ complexity.color }};left:{{ complexity.barLeft }};width:{{ complexity.barWidth }};"></div>
+            <div style="position:absolute;top:6px;width:2px;height:20px;background:oklch(0.95 0.006 90);left:{{ complexity.medianLeft }};"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:'Spline Sans Mono',monospace;font-size:10.5px;color:oklch(0.55 0.008 90);margin-bottom:16px;">
+            <span>0d</span><span>{{ complexity.medianText }} median</span><span>{{ complexity.scaleMax }}</span>
+          </div>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:oklch(0.78 0.006 90);text-wrap:pretty;">{{ complexity.rationale }}</p>
+        </div>
+
+        <div style="border:1px solid oklch(0.36 0.05 60);border-radius:6px;background:oklch(0.225 0.014 60);padding:20px 22px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.72 0.09 60);">Ask before assigning</div>
+          </div>
+          <p style="margin:0 0 14px;font-size:11.5px;line-height:1.45;color:oklch(0.63 0.02 60);">Similar past tickets stalled on these. The estimate assumes they get answered.</p>
+          <sc-for list="{{ questions }}" as="q" hint-placeholder-count="3">
+            <div style="display:flex;gap:11px;padding:9px 0;border-top:1px solid oklch(0.32 0.03 60);">
+              <div style="font-family:'Spline Sans Mono',monospace;font-size:11px;color:oklch(0.68 0.09 60);flex:none;padding-top:1px;">{{ q.n }}</div>
+              <div style="font-size:13px;line-height:1.5;color:oklch(0.88 0.01 60);text-wrap:pretty;">{{ q.text }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:6px;">
+          <h2 style="margin:0;font-size:18px;font-weight:700;letter-spacing:-0.02em;">Candidates</h2>
+          <span style="font-size:11.5px;color:oklch(0.58 0.008 90);">Ordered by fit against past work · not a ranking of people</span>
+        </div>
+        <div style="height:1px;background:oklch(0.3 0.008 90);margin-bottom:4px;"></div>
+
+        <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="3">
+          <div style="border-bottom:1px solid oklch(0.27 0.008 90);padding:20px 0;">
+            <div style="display:grid;grid-template-columns:26px minmax(0,1fr) 190px 128px;gap:20px;align-items:start;">
+              <div style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.5 0.008 90);padding-top:6px;">{{ c.rank }}</div>
+
+              <div style="min-width:0;">
+                <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;">
+                  <div style="width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Spline Sans Mono',monospace;font-size:11px;font-weight:600;color:oklch(0.2 0.007 90);background:{{ c.tint }};">{{ c.initials }}</div>
+                  <div style="min-width:0;">
+                    <div onClick="{{ c.open }}" style="font-size:16px;font-weight:650;letter-spacing:-0.015em;cursor:pointer;" style-hover="color:oklch(0.82 0.11 155);">{{ c.name }}</div>
+                    <div style="font-size:11.5px;color:{{ c.bandColor }};margin-top:1px;">{{ c.band }}</div>
+                  </div>
+                </div>
+                <p style="margin:0 0 12px;font-size:13.5px;line-height:1.55;color:oklch(0.78 0.006 90);max-width:64ch;text-wrap:pretty;">{{ c.why }}</p>
+                <button onClick="{{ c.toggle }}" style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:0.05em;padding:5px 11px;border-radius:4px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;" style-hover="border-color:oklch(0.5 0.05 155);color:oklch(0.88 0.006 90);">{{ c.evidenceLabel }}</button>
+
+                <sc-if value="{{ c.isOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="margin-top:12px;border-left:2px solid oklch(0.4 0.06 155);padding-left:16px;">
+                    <sc-for list="{{ c.evidence }}" as="e" hint-placeholder-count="3">
+                      <div style="display:grid;grid-template-columns:96px minmax(0,1fr) 76px 84px;gap:12px;align-items:baseline;padding:7px 0;">
+                        <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.78 0.11 155);">{{ e.key }}</a>
+                        <div style="font-size:12.5px;line-height:1.45;color:oklch(0.8 0.006 90);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ e.title }}</div>
+                        <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.62 0.008 90);">{{ e.days }}</div>
+                        <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:11px;color:oklch(0.54 0.008 90);">{{ e.resolved }}</div>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{ c.thin }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:11.5px;line-height:1.5;color:oklch(0.66 0.07 60);padding:8px 0 2px;max-width:52ch;">Only {{ c.evidenceCount }} closely matching ticket in this area — treat the fit as a lead to check, not a settled answer.</div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="padding-top:4px;">
+                <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.55 0.008 90);margin-bottom:8px;">Match strength</div>
+                <div style="height:5px;border-radius:3px;background:oklch(0.27 0.008 90);overflow:hidden;margin-bottom:7px;">
+                  <div style="height:100%;background:{{ c.bandColor }};width:{{ c.scorePct }};"></div>
+                </div>
+                <div style="font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.66 0.008 90);">{{ c.matchScore }} / 100</div>
+              </div>
+
+              <div style="padding-top:4px;display:flex;flex-direction:column;gap:12px;">
+                <div>
+                  <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.55 0.008 90);margin-bottom:5px;">Their ETA</div>
+                  <div style="font-family:'Spline Sans Mono',monospace;font-size:16px;">{{ c.etaText }}</div>
+                </div>
+                <div>
+                  <div style="font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.55 0.008 90);margin-bottom:5px;">In flight</div>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <sc-for list="{{ c.pips }}" as="pip" hint-placeholder-count="3">
+                      <div style="width:4px;height:13px;border-radius:1px;background:{{ pip.c }};"></div>
+                    </sc-for>
+                    <span style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.7 0.008 90);margin-left:5px;">{{ c.activeWip }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ noCandidates }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed oklch(0.3 0.008 90);border-radius:6px;padding:32px;margin-top:16px;">
+            <div style="font-size:14px;font-weight:650;margin-bottom:6px;">No one in this history is a close match</div>
+            <p style="margin:0;font-size:13px;line-height:1.6;color:oklch(0.64 0.008 90);max-width:56ch;text-wrap:pretty;">Nothing resolved in this project resembles the task closely enough to cite. That's a signal in itself — this may be new ground for the team, or the description may need more detail.</p>
+          </div>
+        </sc-if>
+
+        <p style="margin:20px 0 0;font-size:11.5px;line-height:1.6;color:oklch(0.52 0.008 90);max-width:70ch;">Estimates are drawn from resolved ticket history and describe past work, not a person's capability. Availability, growth goals, and everything TaskScope can't see are yours to weigh.</p>
+      </section>
+    </div>
+    </sc-if>
+  </main>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;askState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;idle&quot;,&quot;loading&quot;,&quot;results&quot;,&quot;error&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Ask page&quot;},&quot;evidenceOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ask page&quot;}}">
+const TINT = ['oklch(0.78 0.09 155)','oklch(0.79 0.09 60)','oklch(0.76 0.09 30)','oklch(0.77 0.08 250)','oklch(0.78 0.07 320)','oklch(0.8 0.08 120)'];
+const TYPE_C = {
+  'Bug': ['oklch(0.32 0.05 30)','oklch(0.82 0.1 30)','oklch(0.68 0.14 30)'],
+  'Improvement': ['oklch(0.3 0.05 155)','oklch(0.82 0.1 155)','oklch(0.74 0.13 155)'],
+  'New Feature': ['oklch(0.3 0.04 250)','oklch(0.82 0.08 250)','oklch(0.72 0.1 250)'],
+  'Task': ['oklch(0.28 0.006 90)','oklch(0.78 0.006 90)','oklch(0.6 0.02 90)'],
+  'Sub-task': ['oklch(0.26 0.006 90)','oklch(0.7 0.006 90)','oklch(0.48 0.015 90)']
+};
+const PEOPLE = [
+  {id:1,name:'A. Varin',ticketsResolved:214,medianCycleDays:3.2,activeWip:2,topComponents:['streams','core','clients'],typeMix:{Bug:118,Improvement:71,'New Feature':17,Task:8}},
+  {id:2,name:'M. Okonkwo',ticketsResolved:186,medianCycleDays:6.8,activeWip:5,topComponents:['broker','kraft','core'],typeMix:{Bug:74,Improvement:69,'New Feature':31,Task:12}},
+  {id:3,name:'J. Lindqvist',ticketsResolved:171,medianCycleDays:2.1,activeWip:1,topComponents:['connect','clients'],typeMix:{Bug:102,Improvement:52,'New Feature':9,Task:8}},
+  {id:4,name:'R. Devarakonda',ticketsResolved:148,medianCycleDays:11.4,activeWip:6,topComponents:['streams','state-store','core'],typeMix:{Improvement:66,Bug:44,'New Feature':30,Task:8}},
+  {id:5,name:'T. Marchetti',ticketsResolved:133,medianCycleDays:4.5,activeWip:3,topComponents:['security','admin','broker'],typeMix:{Bug:61,Improvement:48,'New Feature':16,Task:8}},
+  {id:6,name:'S. Haruki',ticketsResolved:119,medianCycleDays:1.4,activeWip:0,topComponents:['docs','clients','tools'],typeMix:{Task:52,Bug:41,Improvement:22,'New Feature':4}},
+  {id:7,name:'D. Fereira',ticketsResolved:97,medianCycleDays:18.6,activeWip:4,topComponents:['kraft','broker','replication'],typeMix:{'New Feature':38,Improvement:34,Bug:21,Task:4}},
+  {id:8,name:'N. Abbasi',ticketsResolved:88,medianCycleDays:5.9,activeWip:2,topComponents:['consumer','clients','core'],typeMix:{Bug:47,Improvement:29,'New Feature':8,Task:4}},
+  {id:9,name:'K. Osei',ticketsResolved:74,medianCycleDays:9.1,activeWip:7,topComponents:['connect','transforms'],typeMix:{Improvement:33,Bug:28,'New Feature':9,Task:4}},
+  {id:10,name:'P. Ivanković',ticketsResolved:61,medianCycleDays:3.7,activeWip:1,topComponents:['producer','clients'],typeMix:{Bug:38,Improvement:17,'New Feature':4,Task:2}},
+  {id:11,name:'L. Nyström',ticketsResolved:44,medianCycleDays:27.3,activeWip:3,topComponents:['streams','core'],typeMix:{'New Feature':19,Improvement:15,Bug:9,Task:1}},
+  {id:12,name:'H. Salazar',ticketsResolved:31,medianCycleDays:2.8,activeWip:0,topComponents:['tools','docs'],typeMix:{Task:16,Bug:11,Improvement:4}},
+  {id:13,name:'B. Achterberg',ticketsResolved:12,medianCycleDays:14.0,activeWip:1,topComponents:['security'],typeMix:{Bug:7,Improvement:4,'New Feature':1}},
+  {id:14,name:'Y. Takahara',ticketsResolved:8,medianCycleDays:41.5,activeWip:2,topComponents:['kraft'],typeMix:{'New Feature':5,Improvement:3}}
+];
+const TRENDS = {
+  1:[['2023-01',4.1],['2023-02',3.6],['2023-03',5.2],['2023-05',2.9],['2023-06',3.4],['2023-07',2.2],['2023-09',4.8],['2023-10',3.1],['2023-11',2.6],['2024-01',3.9],['2024-02',2.4],['2024-03',3.0]],
+  4:[['2023-02',14.2],['2023-03',9.8],['2023-04',22.6],['2023-06',11.1],['2023-08',7.4],['2023-09',16.3],['2023-11',10.2],['2023-12',12.8],['2024-02',8.6],['2024-03',11.4]]
+};
+const TICKETS = {
+  1:[
+    {key:'KAFKA-15841',title:'Streams state store restore does not resume from the correct checkpoint after an unclean shutdown during a standby task reassignment',type:'Bug',cycleDays:6.5,resolved:'12 Mar 2024'},
+    {key:'KAFKA-15790',title:'Reduce allocation in RecordAccumulator ready() hot path',type:'Improvement',cycleDays:2.0,resolved:'04 Mar 2024'},
+    {key:'KAFKA-15702',title:'Consumer rebalance stalls when group coordinator moves mid-assignment',type:'Bug',cycleDays:118.0,resolved:'21 Feb 2024'},
+    {key:'KAFKA-15644',title:'Add metric for suppression buffer size',type:'New Feature',cycleDays:3.5,resolved:'09 Feb 2024'},
+    {key:'KAFKA-15611',title:'Flaky test: StreamThreadTest#shouldNotCloseTaskOnCommitFailure',type:'Bug',cycleDays:0.4,resolved:'31 Jan 2024'},
+    {key:'KAFKA-15588',title:'Document the interaction between exactly-once v2 and static membership',type:'Task',cycleDays:5.1,resolved:'22 Jan 2024'}
+  ]
+};
+const COLLABS = {
+  1:[{id:3,name:'J. Lindqvist',sharedTickets:41},{id:4,name:'R. Devarakonda',sharedTickets:33},{id:2,name:'M. Okonkwo',sharedTickets:19},{id:8,name:'N. Abbasi',sharedTickets:12}]
+};
+const EXAMPLES = [
+  {label:'Rebalance latency regression', title:'Consumer group rebalance latency regression after 3.7 upgrade', desc:'Several teams report rebalances taking 30–60s where they used to take under 5s. Suspected in the group coordinator path but not confirmed. Needs reproduction, then a fix or a revert recommendation.'},
+  {label:'Add tiered-storage metrics', title:'Expose per-partition tiered storage lag metrics', desc:'Operators cannot currently tell how far behind remote log upload is for a given partition. Add metrics and wire them through the broker metrics registry.'}
+];
+const RESULT = {
+  complexity:{label:'High',medianDays:14,rangeDays:[6,34],rationale:'Twelve past tickets touching the group coordinator rebalance path resolved in 6 to 34 days, with a median of 14. The wide range is driven by reproduction difficulty: tickets that arrived with a reliable repro closed in under a week; those that did not took a month or more.'},
+  clarifyingQuestions:[
+    'Is there a reliable reproduction, or does this need to be reproduced first? This is the single biggest driver of the range above.',
+    'Which broker version did the affected clusters upgrade from — 3.5 or 3.6? Two similar past regressions turned out to be version-specific.',
+    'Is a revert acceptable if the root cause is not found within the sprint?'
+  ],
+  candidates:[
+    {personId:2,name:'M. Okonkwo',matchScore:87,eta:{lo:8,hi:19},activeWip:5,why:'Has resolved the two most recent regressions in the group coordinator rebalance path, both involving coordinator failover during assignment.',evidence:[
+      {key:'KAFKA-15702',title:'Consumer rebalance stalls when group coordinator moves mid-assignment',cycleDays:118.0,resolved:'21 Feb 2024'},
+      {key:'KAFKA-15318',title:'Rebalance timeout not honoured when a member leaves during the prepare phase',cycleDays:12.5,resolved:'02 Nov 2023'},
+      {key:'KAFKA-14992',title:'Group coordinator loads offsets twice after partition reassignment',cycleDays:9.0,resolved:'18 Aug 2023'},
+      {key:'KAFKA-14760',title:'Reduce lock contention in GroupMetadataManager',cycleDays:5.5,resolved:'27 Jun 2023'}
+    ]},
+    {personId:8,name:'N. Abbasi',matchScore:71,eta:{lo:11,hi:26},activeWip:2,why:'Consistent work on the consumer client side of rebalancing; lighter current load than the closest match.',evidence:[
+      {key:'KAFKA-15455',title:'Consumer does not rejoin after a coordinator disconnect under cooperative assignment',cycleDays:16.0,resolved:'19 Dec 2023'},
+      {key:'KAFKA-15102',title:'Heartbeat thread leaks when the consumer is closed during a rebalance',cycleDays:4.0,resolved:'11 Sep 2023'},
+      {key:'KAFKA-14871',title:'Improve logging around cooperative assignment transitions',cycleDays:2.5,resolved:'14 Jul 2023'}
+    ]},
+    {personId:4,name:'R. Devarakonda',matchScore:58,eta:{lo:14,hi:41},activeWip:6,why:'Deep coordinator internals knowledge from the KRaft migration work, but the closest matching tickets are older and the current load is the heaviest on the team.',evidence:[
+      {key:'KAFKA-14203',title:'Coordinator state machine transitions are not idempotent during controlled shutdown',cycleDays:34.0,resolved:'23 Feb 2023'},
+      {key:'KAFKA-13998',title:'Assignment protocol version negotiation fails for mixed-version groups',cycleDays:21.5,resolved:'06 Dec 2022'}
+    ]},
+    {personId:13,name:'B. Achterberg',matchScore:34,eta:{lo:18,hi:60},activeWip:1,why:'One adjacent ticket only — listed for completeness, and a plausible pairing partner rather than a solo owner.',evidence:[
+      {key:'KAFKA-15009',title:'Rebalance listener callback ordering is undefined on close',cycleDays:27.0,resolved:'30 Aug 2023'}
+    ]}
+  ]
+};
+
+function initials(n){ return n.replace(/[^\p{L}\s.]/gu,'').split(/[\s.]+/).filter(Boolean).map(s=>s[0]).slice(0,2).join('').toUpperCase(); }
+function tintOf(id){ return TINT[id % TINT.length]; }
+function pips(n){ const out=[]; for(let i=0;i<8;i++) out.push({c: i<n ? (n>=6?'oklch(0.72 0.13 30)': n>=4?'oklch(0.76 0.11 60)':'oklch(0.7 0.09 155)') : 'oklch(0.28 0.008 90)'}); return out; }
+function fmtDays(d){ return d>=100 ? Math.round(d)+'d' : d>=10 ? d.toFixed(0)+'d' : d.toFixed(1)+'d'; }
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+class Component extends DCLogic {
+  state = { route:'team', personId:1, phase:'idle', open:{0:true}, title:'', desc:'' };
+
+  go = (r) => () => this.setState({ route:r });
+  openPerson = (id) => () => this.setState({ route:'person', personId:id });
+
+  submit = () => {
+    if (this._t) clearTimeout(this._t);
+    this.setState({ phase:'loading' });
+    this._t = setTimeout(()=>this.setState({ phase:'results' }), 1400);
+  };
+  componentWillUnmount(){ if(this._t) clearTimeout(this._t); }
+
+  navStyle(active){
+    return 'font-family:Libre Franklin,sans-serif;font-size:12.5px;font-weight:550;padding:7px 15px;border-radius:5px;cursor:pointer;border:1px solid '+
+      (active?'oklch(0.42 0.07 155)':'transparent')+';background:'+(active?'oklch(0.27 0.03 155)':'none')+';color:'+(active?'oklch(0.9 0.06 155)':'oklch(0.66 0.008 90)')+';';
+  }
+
+  buildPerson(){
+    const p = PEOPLE.find(x=>x.id===this.state.personId) || PEOPLE[0];
+    const trend = TRENDS[p.id] || TRENDS[4];
+    const W=720,H=140,X0=40;
+    const max = Math.max(...trend.map(t=>t[1]))*1.15;
+    const step = (W-X0)/(trend.length-1);
+    const pts = trend.map((t,i)=>({ x:X0+i*step, y:H-(t[1]/max)*(H-14), label:t[0] }));
+    const linePath = pts.map((q,i)=>(i?'L':'M')+q.x.toFixed(1)+' '+q.y.toFixed(1)).join(' ');
+    const areaPath = linePath+' L'+pts[pts.length-1].x.toFixed(1)+' '+H+' L'+pts[0].x.toFixed(1)+' '+H+' Z';
+    const gridLines=[0,1,2,3].map(i=>{ const v=max*(1-i/3); const y=14+(i/3)*(H-14); return {y:y.toFixed(1),ty:(y+3.5).toFixed(1),label:v>=10?Math.round(v)+'d':v.toFixed(1)+'d'}; });
+    const xTicks = pts.filter((_,i)=>i%Math.ceil(pts.length/6)===0).map(q=>{ const [y,m]=q.label.split('-'); return {x:q.x.toFixed(1),label:MONTHS[+m-1]+" '"+y.slice(2)}; });
+    const tickets = (TICKETS[p.id]||TICKETS[1]).map(t=>{ const c=TYPE_C[t.type]||TYPE_C.Task; return {...t, typeBg:c[0], typeFg:c[1], days:fmtDays(t.cycleDays), daysColor: t.cycleDays>60?'oklch(0.74 0.13 30)': t.cycleDays>20?'oklch(0.78 0.1 60)':'oklch(0.8 0.006 90)'}; });
+    const mixTop = Object.entries(p.typeMix).sort((a,b)=>b[1]-a[1])[0];
+    return {
+      ...p, initials:initials(p.name), tint:tintOf(p.id),
+      stats:[
+        {label:'Tickets resolved', value:String(p.ticketsResolved), note: p.ticketsResolved<20?'sparse history — read with care':'across 2021 – 2024'},
+        {label:'Median cycle time', value:fmtDays(p.medianCycleDays), note:'open to resolved'},
+        {label:'In flight now', value:String(p.activeWip), note: p.activeWip>=5?'heavier than team median':'at or below team median'},
+        {label:'Most common work', value:mixTop[0], note:mixTop[1]+' of '+p.ticketsResolved+' tickets'}
+      ],
+      linePath, areaPath, gridLines, xTicks,
+      points: pts.map(q=>({x:q.x.toFixed(1),y:q.y.toFixed(1)})),
+      recentTickets: tickets, ticketCount: tickets.length,
+      collaborators: (COLLABS[p.id]||COLLABS[1]).map(c=>({...c, initials:initials(c.name), tint:tintOf(c.id), open:this.openPerson(c.id)}))
+    };
+  }
+
+  renderVals(){
+    const maxCycle = 30;
+    const people = PEOPLE.map(p=>{
+      const total = Object.values(p.typeMix).reduce((a,b)=>a+b,0);
+      const segs = Object.entries(p.typeMix).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({ c:(TYPE_C[k]||TYPE_C.Task)[2], w:(v/total*100).toFixed(1)+'%' }));
+      return { ...p, initials:initials(p.name), tint:tintOf(p.id), open:this.openPerson(p.id),
+        sparse: p.ticketsResolved<20,
+        cycleLabel: fmtDays(p.medianCycleDays),
+        cyclePct: Math.min(100, p.medianCycleDays/maxCycle*100).toFixed(0)+'%',
+        pips: pips(p.activeWip).slice(0,8),
+        segs, mixTitle: Object.entries(p.typeMix).map(([k,v])=>k+' '+v).join(' · ') };
+    });
+
+    const forced = this.props.askState && this.props.askState !== 'auto' ? this.props.askState : null;
+    const phase = forced || this.state.phase;
+    const R = RESULT;
+    const scaleMax = Math.ceil(R.complexity.rangeDays[1]*1.15/5)*5;
+    const cLabelColor = {Low:'oklch(0.76 0.11 155)',Medium:'oklch(0.8 0.1 120)',High:'oklch(0.8 0.11 60)','Very High':'oklch(0.74 0.14 30)'}[R.complexity.label];
+    const cands = R.candidates.map((c,i)=>{
+      const band = c.matchScore>=80?['Strong match','oklch(0.78 0.11 155)']: c.matchScore>=65?['Solid match','oklch(0.8 0.09 120)']: c.matchScore>=45?['Possible fit','oklch(0.8 0.09 60)']:['Worth a look','oklch(0.7 0.02 90)'];
+      const isOpen = this.props.evidenceOpen === false ? !!this.state.open['x'+i] : (this.state.open[i] !== undefined ? this.state.open[i] : true);
+      return { ...c, rank:String(i+1).padStart(2,'0'), initials:initials(c.name), tint:tintOf(c.personId),
+        band:band[0], bandColor:band[1], scorePct:c.matchScore+'%',
+        etaText:c.eta.lo+'–'+c.eta.hi+' days', pips:pips(c.activeWip).slice(0,8),
+        open:this.openPerson(c.personId),
+        isOpen, evidenceCount:c.evidence.length, thin:c.evidence.length<2,
+        evidenceLabel:(isOpen?'▾  ':'▸  ')+c.evidence.length+' CITED TICKET'+(c.evidence.length===1?'':'S'),
+        toggle: () => this.setState(s=>{ const k = this.props.evidenceOpen===false?'x'+i:i; const cur = k===i ? (s.open[i]!==undefined?s.open[i]:true) : !!s.open[k]; return { open:{...s.open,[k]:!cur} }; }),
+        evidence: c.evidence.map(e=>({ ...e, days:fmtDays(e.cycleDays) })) };
+    });
+
+    return {
+      isTeam: this.state.route==='team', isPerson: this.state.route==='person', isAsk: this.state.route==='ask',
+      goTeam: this.go('team'), goAsk: this.go('ask'),
+      navTeamStyle: this.navStyle(this.state.route!=='ask'), navAskStyle: this.navStyle(this.state.route==='ask'),
+      people,
+      legend: Object.keys(TYPE_C).slice(0,4).map(k=>({label:k, c:TYPE_C[k][2]})),
+      person: this.buildPerson(),
+      titleVal:this.state.title, descVal:this.state.desc,
+      onTitle: e=>this.setState({title:e.target.value}), onDesc: e=>this.setState({desc:e.target.value}),
+      examples: EXAMPLES.map(x=>({ label:x.label, use: ()=>this.setState({title:x.title, desc:x.desc}) })),
+      submit: this.submit,
+      showIdle: phase==='idle', showLoading: phase==='loading', showResults: phase==='results', showError: phase==='error',
+      skeletons:[{h:'150px'},{h:'118px'},{h:'118px'}],
+      complexity:{ ...R.complexity, color:cLabelColor,
+        rangeText: R.complexity.rangeDays[0]+'–'+R.complexity.rangeDays[1]+' days, likely',
+        medianText: R.complexity.medianDays+'d', scaleMax: scaleMax+'d',
+        barLeft:(R.complexity.rangeDays[0]/scaleMax*100).toFixed(1)+'%',
+        barWidth:((R.complexity.rangeDays[1]-R.complexity.rangeDays[0])/scaleMax*100).toFixed(1)+'%',
+        medianLeft:(R.complexity.medianDays/scaleMax*100).toFixed(1)+'%' },
+      questions: R.clarifyingQuestions.map((t,i)=>({ n:String(i+1).padStart(2,'0'), text:t })),
+      candidates: cands, noCandidates: cands.length===0
+    };
+  }
+}
+
+</script>
+</body>
+</html>

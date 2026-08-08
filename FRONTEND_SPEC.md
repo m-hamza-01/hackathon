@@ -17,9 +17,14 @@ TaskScope is a manager-side dashboard over a Jira project's history. It builds p
 ## Routes and views
 
 ### 1. `/` — Team overview
-Data: `GET /api/team` → `{ people: PersonSummary[] }`
+Data: `GET /api/team` → `{ people: PersonSummary[], meta: TeamMeta }`
 
 ```ts
+TeamMeta = {
+  totalTickets: number              // resolved tickets in the dataset
+  dateRange: [string, string]       // e.g. ["2013", "2026"] — first/last resolved year
+}
+
 PersonSummary = {
   id: number
   name: string                      // pseudonym
