@@ -145,7 +145,7 @@ export function CandidateCard({ candidate, rank }: { candidate: Candidate; rank:
         <div style={{ paddingTop: 4, display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <div style={{ fontSize: 10, letterSpacing: "0.07em", textTransform: "uppercase", color: "oklch(0.55 0.008 90)", marginBottom: 5 }}>Their ETA</div>
-            <div style={{ fontFamily: "var(--font-code)", fontSize: 16 }}>{candidate.eta.lo}–{candidate.eta.hi} days</div>
+            <div style={{ fontFamily: "var(--font-code)", fontSize: 16 }}>{candidate.eta.lo === candidate.eta.hi ? `~${candidate.eta.lo}` : `${candidate.eta.lo}–${candidate.eta.hi}`} days</div>
           </div>
           <div>
             <div style={{ fontSize: 10, letterSpacing: "0.07em", textTransform: "uppercase", color: "oklch(0.55 0.008 90)", marginBottom: 5 }}>In flight</div>
@@ -181,15 +181,30 @@ export default function AskPage() {
       .catch(() => {});
   }, []);
 
-  async function submit() {
-    if (!title.trim()) return;
+  // Demo deep-links: /ask?q=<title>&d=<description> runs the query on load.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) {
+      const d = params.get("d") ?? "";
+      setTitle(q);
+      setDesc(d);
+      submit(q, d);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function submit(titleOverride?: string, descOverride?: string) {
+    const t = (titleOverride ?? title).trim();
+    const d = descOverride ?? desc;
+    if (!t) return;
     setPhase("loading");
     setResult(null);
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description: desc }),
+        body: JSON.stringify({ title: t, description: d }),
       });
       if (!res.ok) throw new Error("failed");
       const data: AskResponse = await res.json();
@@ -249,7 +264,7 @@ export default function AskPage() {
             </div>
             {/* Submit */}
             <button
-              onClick={submit}
+              onClick={() => submit()}
               disabled={phase === "loading" || !title.trim()}
               style={{ flexShrink: 0, fontFamily: "var(--font-ui), sans-serif", fontSize: 13, fontWeight: 600, padding: "9px 22px", borderRadius: 5, border: "none", background: "oklch(0.74 0.13 155)", color: "oklch(0.19 0.02 155)", cursor: "pointer", opacity: !title.trim() ? 0.5 : 1 }}
               onMouseEnter={(e) => { if (title.trim()) (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.8 0.13 155)"; }}
@@ -294,7 +309,7 @@ export default function AskPage() {
                 Your task text is still here. Nothing was sent to anyone, and no estimate was produced — retry, or check the service and try again.
               </p>
               <button
-                onClick={submit}
+                onClick={() => submit()}
                 style={{ fontFamily: "var(--font-ui), sans-serif", fontSize: "12.5px", fontWeight: 600, padding: "8px 18px", borderRadius: 5, border: "1px solid oklch(0.5 0.08 30)", background: "none", color: "oklch(0.88 0.04 30)", cursor: "pointer" }}>
                 Retry
               </button>
