@@ -12,6 +12,7 @@ TaskScope — hackathon project. Ingests a Jira project's full history (tickets,
 - None
 
 ## Recently Completed
+- [x] Verification sweep (4-agent team: docs-auditor, api-tester, ui-verifier, code-reviewer): zero blockers/majors found; fixed all minors — excludeId SQL param binding, NaN timestamp guard, strict numeric id validation, 405 JSON body, person-404 UX, StrictMode double-submit guard, synthesis failure logging, WAL pragma removal, Next.js 16.3.0 (npm audit clean) — (2026-08-09)
 - [x] Demo hardening: `/ask?q=&d=` deep-links auto-run queries, DEMO.md 3-min script, degenerate ETA display fix, README run/deploy instructions — (2026-08-09)
 - [x] Claude synthesis layer (task #4): claude-sonnet-5 tool-forced prose (rationale, clarifying questions, whys), citation validator with retry-then-strip, template fallback without key, bidirectional divergence guard; wired into web /api/ask; CLI self-test passes — (2026-08-09)
 - [x] Dashboard on real SQLite (task #5): /api/team (25-person roster + meta), /api/person (trend, recent tickets, collaborators), /api/ask on ported engine; zombie-ticket trend guard (>365d), server-side date formatting; verified via prod build + screenshots — (2026-08-09)
