@@ -115,6 +115,9 @@ const MIN_MATCHES         = 1;    // minimum neighbor matches to rank a candidat
 const TOP_CANDIDATES      = 10;   // max candidates returned
 const COMP_BOOST_STRENGTH = 2.0;  // multiplier for component-expertise overlap bonus
 
+const ETA_MIN_LO    = 0.5;  // floor on ETA p25 — "0d" is not a useful estimate
+const ETA_MAX_RATIO = 8.0;  // maximum ETA hi/lo spread shown to a manager
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function percentile(sorted: number[], p: number): number {
