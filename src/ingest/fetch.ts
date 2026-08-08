@@ -7,7 +7,7 @@ const BASE_URL = "https://issues.apache.org/jira/rest/api/2/search";
 const RESOLVED_JQL =
   "project=KAFKA AND resolution=Fixed AND assignee is not EMPTY ORDER BY resolved DESC";
 const OPEN_JQL =
-  'project=KAFKA AND status in ("Open","In Progress","Patch Available") AND assignee is not EMPTY ORDER BY created DESC';
+  'project=KAFKA AND resolution=EMPTY AND status in ("In Progress","Patch Available","Reopened") AND assignee is not EMPTY ORDER BY updated DESC';
 
 const MAX_RESULTS = 100;
 const DELAY_MS = 250;
@@ -16,7 +16,9 @@ function pageFile(page: number): string {
   return path.join(RAW_DIR, `kafka-page-${String(page).padStart(3, "0")}.json`);
 }
 
-const OPEN_FILE = path.join(RAW_DIR, "kafka-open.json");
+function openPageFile(page: number): string {
+  return path.join(RAW_DIR, `kafka-open-page-${String(page).padStart(3, "0")}.json`);
+}
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -79,30 +81,41 @@ async function fetchResolved(totalPages: number) {
 }
 
 async function fetchOpen() {
-  console.log("Fetching open/in-progress tickets for WIP snapshot…");
-  const allIssues: unknown[] = [];
-  let startAt = 0;
+  console.log("Fetching open/in-progress/reopened tickets for WIP…");
+
+  // Read total from first page, then paginate until exhausted. Resumable.
+  let pageNum = 0;
   let total = Infinity;
 
-  while (startAt < total) {
+  while (pageNum * MAX_RESULTS < total) {
+    const file = openPageFile(pageNum);
+    if (fs.existsSync(file)) {
+      // Already fetched — read total from it to set stopping condition
+      const cached = JSON.parse(fs.readFileSync(file, "utf8")) as { total?: number; issues?: unknown[] };
+      total = cached.total ?? total;
+      console.log(`  Open page ${pageNum}: already exists, skipping`);
+      pageNum++;
+      continue;
+    }
+
     const data = await fetchOnePage(
       OPEN_JQL,
-      startAt,
-      "summary,assignee,status",
-      null
+      pageNum * MAX_RESULTS,
+      "summary,description,issuetype,status,priority,assignee,reporter,components,labels,created,resolutiondate,comment",
+      "changelog"
     );
     const page = data as { total?: number; issues?: unknown[] };
     total = page.total ?? 0;
     const issues = page.issues ?? [];
-    allIssues.push(...issues);
-    console.log(`  Fetched ${allIssues.length} / ${total} open tickets`);
-    startAt += issues.length;
-    if (issues.length === 0 || startAt >= total) break;
-    await sleep(DELAY_MS);
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    console.log(`  Open page ${pageNum}: saved ${issues.length} issues → ${path.basename(file)}  (total=${total})`);
+
+    if (issues.length === 0) break;
+    pageNum++;
+    if (pageNum * MAX_RESULTS < total) await sleep(DELAY_MS);
   }
 
-  fs.writeFileSync(OPEN_FILE, JSON.stringify({ issues: allIssues }, null, 2));
-  console.log(`Saved ${allIssues.length} open tickets → ${path.basename(OPEN_FILE)}`);
+  console.log(`Open fetch complete (${pageNum} pages, total=${total}).`);
 }
 
 async function main() {

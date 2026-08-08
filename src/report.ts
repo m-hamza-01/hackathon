@@ -154,6 +154,36 @@ function main() {
   }
 
   console.log();
+
+  // ── Active WIP — top 10 ──────────────────────────────────────────────────
+  const wipRows = db
+    .prepare<[], { display_name: string; open_count: number }>(
+      `SELECT p.display_name, COUNT(*) AS open_count
+       FROM tickets t
+       JOIN people p ON p.id = t.assignee_id
+       WHERE t.resolved IS NULL
+       GROUP BY t.assignee_id
+       ORDER BY open_count DESC
+       LIMIT 10`
+    )
+    .all();
+
+  const totalOpen = db
+    .prepare<[], { c: number }>("SELECT COUNT(*) AS c FROM tickets WHERE resolved IS NULL")
+    .get()!.c;
+
+  console.log(`Active WIP — top 10 assignees  (${totalOpen} open tickets total)`);
+  console.log("────────────────────────────────");
+
+  if (wipRows.length === 0) {
+    console.log("  No open tickets loaded — run `npm run fetch:open && npm run load` first.");
+  } else {
+    for (const row of wipRows) {
+      console.log(`  ${row.display_name.padEnd(22)} ${String(row.open_count).padStart(4)} open`);
+    }
+  }
+
+  console.log();
   console.log("═══════════════════════════════════════════════════════\n");
 }
 

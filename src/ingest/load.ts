@@ -242,85 +242,49 @@ const loadAll = db.transaction((pages: JiraIssue[][]) => {
   }
 });
 
-// ── Open tickets (WIP snapshot) ───────────────────────────────────────────────
-
-interface OpenIssue {
-  id: string;
-  key: string;
-  fields: {
-    summary?: string;
-    status?: { name?: string };
-    assignee?: JiraUser;
-  };
-}
-
-const clearOpenTickets = db.prepare("DELETE FROM open_tickets");
-const insertOpenTicket = db.prepare<[number, string, string | null, string | null, number | null]>(
-  "INSERT OR REPLACE INTO open_tickets (id, key, title, status, assignee_id) VALUES (?,?,?,?,?)"
-);
-
-const loadOpenTickets = db.transaction((issues: OpenIssue[]) => {
-  clearOpenTickets.run();
-  for (const issue of issues) {
-    const f = issue.fields ?? {};
-    const assignee_id = ensurePerson(f.assignee);
-    insertOpenTicket.run(
-      parseInt(issue.id, 10),
-      issue.key,
-      f.summary ?? null,
-      f.status?.name ?? null,
-      assignee_id
-    );
-  }
-});
-
-function maybeLoadOpenTickets() {
-  const openFile = path.join(RAW_DIR, "kafka-open.json");
-  if (!fs.existsSync(openFile)) return;
-
-  const raw = JSON.parse(fs.readFileSync(openFile, "utf8")) as { issues?: OpenIssue[] };
-  const issues = raw.issues ?? [];
-  loadOpenTickets(issues);
-  console.log(`Loaded ${issues.length} open/in-progress tickets (WIP snapshot).`);
-}
-
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-function main() {
-  const files = fs
+function readPages(prefix: string): JiraIssue[][] {
+  return fs
     .readdirSync(RAW_DIR)
-    .filter((f) => f.startsWith("kafka-page-") && f.endsWith(".json"))
-    .sort();
+    .filter((f) => f.startsWith(prefix) && f.endsWith(".json"))
+    .sort()
+    .map((f) => {
+      const raw = JSON.parse(fs.readFileSync(path.join(RAW_DIR, f), "utf8")) as JiraPage;
+      return raw.issues ?? [];
+    });
+}
 
-  if (files.length === 0) {
-    console.error("No raw pages found in", RAW_DIR, "— run `npm run fetch` first.");
+function main() {
+  // Resolved tickets
+  const resolvedPages = readPages("kafka-page-");
+  if (resolvedPages.length === 0) {
+    console.error("No resolved pages found in", RAW_DIR, "— run `npm run fetch` first.");
     process.exit(1);
   }
+  console.log(`Loading ${resolvedPages.length} resolved page(s)…`);
+  loadAll(resolvedPages);
 
-  console.log(`Loading ${files.length} page(s) into SQLite…`);
-
-  const allPages: JiraIssue[][] = [];
-  for (const file of files) {
-    const raw = JSON.parse(
-      fs.readFileSync(path.join(RAW_DIR, file), "utf8")
-    ) as JiraPage;
-    allPages.push(raw.issues ?? []);
+  // Open/in-progress tickets — same structure, resolutiondate is null so
+  // resolved/cycle_days/work_days stay NULL in the DB.
+  const openPages = readPages("kafka-open-page-");
+  if (openPages.length > 0) {
+    const openCount = openPages.reduce((s, p) => s + p.length, 0);
+    console.log(`Loading ${openPages.length} open page(s) (${openCount} tickets)…`);
+    loadAll(openPages);
   }
-
-  loadAll(allPages);
-  maybeLoadOpenTickets();
 
   const stats = db
     .prepare<[], { tickets: number; people: number; open: number }>(
       `SELECT
-         (SELECT COUNT(*) FROM tickets) AS tickets,
-         (SELECT COUNT(*) FROM people)  AS people,
-         (SELECT COUNT(*) FROM open_tickets) AS open`
+         (SELECT COUNT(*) FROM tickets)                        AS tickets,
+         (SELECT COUNT(*) FROM people)                         AS people,
+         (SELECT COUNT(*) FROM tickets WHERE resolved IS NULL) AS open`
     )
     .get()!;
 
   console.log(
-    `Done. Loaded ${stats.tickets} tickets, ${stats.people} people, ${stats.open} open-ticket WIP entries.`
+    `Done. ${stats.tickets} tickets total (${stats.open} open/WIP), ${stats.people} people.`
   );
 }
 
