@@ -111,6 +111,7 @@ const DECAY_LAMBDA  = Math.LN2 / HALF_LIFE_MS;
 
 const TOP_N               = 35;   // BM25 retrieval count (wider net → more candidates visible)
 const MIN_MATCHES         = 1;    // minimum neighbor matches to rank a candidate
+
 const TOP_CANDIDATES      = 10;   // max candidates returned
 const COMP_BOOST_STRENGTH = 2.0;  // multiplier for component-expertise overlap bonus
 
@@ -466,9 +467,15 @@ export function ask(params: {
   const builtCandidates = scored.slice(0, topCandidates).map((sc, idx) => {
     const nts = sc.neighbors;
 
-    // ETA from this person's neighbor effort distribution
+    // ETA from this person's neighbor effort distribution.
+    //
+    // Step 1 — winsorize inputs: cap individual effort values at the query's
+    // complexity ceiling × 3 before computing percentiles. This prevents one
+    // outlier ticket (e.g. a 579-day pre-2020 cycle_days) from dragging p75
+    // well above anything a manager would find plausible.
+    const winsorCap = Math.max(globalP75 * 3, 30);
     const effortsForEta = nts
-      .map(n => n.effortDays)
+      .map(n => n.effortDays != null ? Math.min(n.effortDays, winsorCap) : null)
       .filter((v): v is number => v !== null)
       .sort((a, b) => a - b);
 
@@ -492,11 +499,32 @@ export function ask(params: {
       etaP75    = globalP75;
     }
 
-    // Scale by WIP: more in-flight → slower expected delivery
+    // Step 2 — scale by WIP: more in-flight → slower expected delivery
     const wipInflation = 1 + 0.10 * sc.wip;
-    etaP25    = r1(etaP25    * wipInflation);
-    etaMedian = r1(etaMedian * wipInflation);
-    etaP75    = r1(etaP75    * wipInflation);
+    etaP25    = etaP25    * wipInflation;
+    etaMedian = etaMedian * wipInflation;
+    etaP75    = etaP75    * wipInflation;
+
+    // Step 3 — post-hoc demo-safety clamps (applied after WIP inflation)
+    // a) Cap hi at complexity upper bound × 1.5 — keeps ETA grounded in the
+    //    query's neighborhood, not an outlier ticket's calendar span.
+    const complexityHi = globalP75 * 1.5;
+    etaP75    = Math.min(etaP75, complexityHi);
+    // b) P25 can't exceed P75 (winsorization + sparse-bracket can invert them)
+    etaP25    = Math.min(etaP25, etaP75);
+    // c) Floor lo at ETA_MIN_LO days — "0d" is not a useful estimate
+    etaP25    = Math.max(etaP25, ETA_MIN_LO);
+    // d) Ensure P75 >= P25 after the floor (a 0-effort ticket gets floored up,
+    //    which can make P75 < P25 if the cap already pulled P75 to near zero)
+    etaP75    = Math.max(etaP75, etaP25);
+    // e) Enforce hi/lo ratio cap — prevents 0.2–203d style ranges
+    etaP75    = Math.min(etaP75, etaP25 * ETA_MAX_RATIO);
+    // f) Keep median strictly within [p25, p75]
+    etaMedian = Math.min(Math.max(etaMedian, etaP25), etaP75);
+
+    etaP25    = r1(etaP25);
+    etaMedian = r1(etaMedian);
+    etaP75    = r1(etaP75);
 
     // Top-5 evidence tickets (by BM25 similarity descending)
     const evidence = [...nts]
