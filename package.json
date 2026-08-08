@@ -1,0 +1,21 @@
+{
+  "name": "taskscope",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "tsx src/ingest/fetch.ts",
+    "load": "tsx src/ingest/load.ts",
+    "ingest": "npm run fetch && npm run load",
+    "report": "tsx src/report.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.19.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
