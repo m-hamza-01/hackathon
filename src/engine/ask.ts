@@ -11,6 +11,7 @@ import Database from "better-sqlite3";
 import { fileURLToPath } from "url";
 import path from "path";
 import { ask, queryEngine, QueryResult } from "./engine.js";
+import { synthesizeAsk, buildValidKeySet, stripInvalidKeys, templateFallback } from "./synthesize.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH   = path.resolve(__dirname, "../../data/taskscope.db");
@@ -142,13 +143,65 @@ function runDemo() {
   }
 }
 
+// ── Synth demo ────────────────────────────────────────────────────────────────
+
+async function runSynth() {
+  const q = DEMO_QUERIES[0]; // streams query — the centerpiece demo
+  console.log(`\n${"═".repeat(72)}`);
+  console.log(`--synth demo  query: "${q.title}"`);
+  console.log("═".repeat(72));
+
+  const qr = ask({ title: q.title, description: q.desc });
+  const hasKey = !!process.env.ANTHROPIC_API_KEY
+    // also check cwd .env and parent
+    || (() => {
+      const candidates = [
+        path.join(process.cwd(), ".env"),
+        path.join(process.cwd(), "../.env"),
+      ];
+      return candidates.some(p => {
+        try {
+          return require("fs").readFileSync(p, "utf8").includes("ANTHROPIC_API_KEY=");
+        } catch { return false; }
+      });
+    })();
+
+  console.log(`\nAPI key present: ${hasKey}`);
+  console.log("Calling synthesizeAsk...\n");
+
+  const response = await synthesizeAsk(qr, q.title, q.desc);
+  console.log(JSON.stringify(response, null, 2));
+
+  // ── Citation validator self-test ───────────────────────────────────────────
+  console.log(`\n${"─".repeat(72)}`);
+  console.log("Citation validator self-test");
+  console.log("─".repeat(72));
+
+  const validKeys = buildValidKeySet(qr);
+  const plantedKey = "KAFKA-99999";
+  const fakeProse = `This task is similar to [${plantedKey}] which was resolved quickly.`;
+  const hasViolation = [...fakeProse.matchAll(/KAFKA-\d+/g)].some(m => !validKeys.has(m[0]));
+  const stripped = stripInvalidKeys(fakeProse, validKeys);
+
+  console.log(`Planted key:  ${plantedKey}`);
+  console.log(`In valid set: ${validKeys.has(plantedKey)} (expected: false)`);
+  console.log(`Violation detected: ${hasViolation} (expected: true)`);
+  console.log(`After strip:  "${stripped}"`);
+  console.log(`Self-test: ${hasViolation && !stripped.includes(plantedKey) ? "PASS ✓" : "FAIL ✗"}`);
+}
+
 // ── Entry ─────────────────────────────────────────────────────────────────────
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
 
   if (args.includes("--eval")) {
     runEval();
+    return;
+  }
+
+  if (args.includes("--synth")) {
+    await runSynth();
     return;
   }
 
@@ -164,6 +217,7 @@ function main() {
     console.error("Usage: npm run ask -- --title \"...\" [--desc \"...\"]");
     console.error("       npm run ask -- --eval");
     console.error("       npm run ask -- --demo");
+    console.error("       npm run ask -- --synth");
     process.exit(1);
   }
 
