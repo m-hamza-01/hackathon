@@ -15,7 +15,7 @@ npm run ingest    # fetch Apache Kafka Jira history → data/raw/, load → data
 npm run report    # sanity stats: people, cycle times, expertise mix
 ```
 
-Demo dataset: Apache Kafka's public Jira (~10k resolved, assigned tickets), contributor names pseudonymized at ingest.
+Demo dataset: Apache Kafka's public Jira (~10k resolved, assigned tickets available; the 2,000 most recent are ingested for the demo, plus 555 open tickets for WIP), contributor names pseudonymized at ingest.
 
 ```bash
 npm run ask -- --title "Streams state store corruption after rebalance"   # CLI query

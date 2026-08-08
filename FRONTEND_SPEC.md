@@ -8,7 +8,7 @@ TaskScope is a manager-side dashboard over a Jira project's history. It builds p
 
 ## Stack / integration constraints
 
-- Next.js 15, App Router, TypeScript, Tailwind (v4), `src/` layout. App lives in `web/`.
+- Next.js 16, App Router, TypeScript, Tailwind (v4), `src/` layout. App lives in `web/`.
 - Pages fetch from internal API routes (`/api/...`) — they never import data modules directly. A redesign must preserve this: restyle components, keep fetch logic and route handlers untouched.
 - Route handlers live in `web/src/app/api/**` — off-limits to a design patch.
 - No component libraries in the build today; charts are inline SVG. A redesign may introduce libraries only if it accepts owning the bundle/build impact.
