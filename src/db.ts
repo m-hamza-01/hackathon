@@ -57,9 +57,18 @@ db.exec(`
     at        TEXT
   );
 
-  CREATE INDEX IF NOT EXISTS idx_tickets_assignee ON tickets(assignee_id);
-  CREATE INDEX IF NOT EXISTS idx_comments_ticket  ON comments(ticket_id);
-  CREATE INDEX IF NOT EXISTS idx_transitions_ticket ON transitions(ticket_id);
+  CREATE TABLE IF NOT EXISTS open_tickets (
+    id          INTEGER PRIMARY KEY,
+    key         TEXT UNIQUE,
+    title       TEXT,
+    status      TEXT,
+    assignee_id INTEGER
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_tickets_assignee    ON tickets(assignee_id);
+  CREATE INDEX IF NOT EXISTS idx_comments_ticket     ON comments(ticket_id);
+  CREATE INDEX IF NOT EXISTS idx_transitions_ticket  ON transitions(ticket_id);
+  CREATE INDEX IF NOT EXISTS idx_open_tickets_person ON open_tickets(assignee_id);
 `);
 
 export { db, DATA_DIR, RAW_DIR, DB_PATH };

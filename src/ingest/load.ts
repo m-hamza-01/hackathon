@@ -242,6 +242,50 @@ const loadAll = db.transaction((pages: JiraIssue[][]) => {
   }
 });
 
+// ── Open tickets (WIP snapshot) ───────────────────────────────────────────────
+
+interface OpenIssue {
+  id: string;
+  key: string;
+  fields: {
+    summary?: string;
+    status?: { name?: string };
+    assignee?: JiraUser;
+  };
+}
+
+const clearOpenTickets = db.prepare("DELETE FROM open_tickets");
+const insertOpenTicket = db.prepare<[number, string, string | null, string | null, number | null]>(
+  "INSERT OR REPLACE INTO open_tickets (id, key, title, status, assignee_id) VALUES (?,?,?,?,?)"
+);
+
+const loadOpenTickets = db.transaction((issues: OpenIssue[]) => {
+  clearOpenTickets.run();
+  for (const issue of issues) {
+    const f = issue.fields ?? {};
+    const assignee_id = ensurePerson(f.assignee);
+    insertOpenTicket.run(
+      parseInt(issue.id, 10),
+      issue.key,
+      f.summary ?? null,
+      f.status?.name ?? null,
+      assignee_id
+    );
+  }
+});
+
+function maybeLoadOpenTickets() {
+  const openFile = path.join(RAW_DIR, "kafka-open.json");
+  if (!fs.existsSync(openFile)) return;
+
+  const raw = JSON.parse(fs.readFileSync(openFile, "utf8")) as { issues?: OpenIssue[] };
+  const issues = raw.issues ?? [];
+  loadOpenTickets(issues);
+  console.log(`Loaded ${issues.length} open/in-progress tickets (WIP snapshot).`);
+}
+
+// ── Entry point ───────────────────────────────────────────────────────────────
+
 function main() {
   const files = fs
     .readdirSync(RAW_DIR)
@@ -264,15 +308,19 @@ function main() {
   }
 
   loadAll(allPages);
+  maybeLoadOpenTickets();
 
   const stats = db
-    .prepare<[], { tickets: number; people: number }>(
-      "SELECT (SELECT COUNT(*) FROM tickets) AS tickets, (SELECT COUNT(*) FROM people) AS people"
+    .prepare<[], { tickets: number; people: number; open: number }>(
+      `SELECT
+         (SELECT COUNT(*) FROM tickets) AS tickets,
+         (SELECT COUNT(*) FROM people)  AS people,
+         (SELECT COUNT(*) FROM open_tickets) AS open`
     )
     .get()!;
 
   console.log(
-    `Done. Loaded ${stats.tickets} tickets, ${stats.people} people.`
+    `Done. Loaded ${stats.tickets} tickets, ${stats.people} people, ${stats.open} open-ticket WIP entries.`
   );
 }
 
