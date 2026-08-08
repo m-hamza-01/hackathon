@@ -1,7 +1,14 @@
+// ─── Shared meta from the dataset ────────────────────────────────────────────
+
+export interface TeamMeta {
+  totalTickets: number;
+  dateRange: [string, string]; // year strings e.g. ["2021", "2024"]
+}
+
 // ─── Core person shape ────────────────────────────────────────────────────────
 
 export interface PersonSummary {
-  id: string;
+  id: number;
   name: string;
   ticketsResolved: number;
   medianCycleDays: number;
@@ -14,12 +21,13 @@ export interface PersonSummary {
 
 export interface TeamResponse {
   people: PersonSummary[];
+  meta: TeamMeta;
 }
 
 // ─── GET /api/person/[id] ─────────────────────────────────────────────────────
 
 export interface CycleTrendPoint {
-  month: string;
+  month: string; // "YYYY-MM" format for proper chart labels
   medianDays: number;
 }
 
@@ -28,11 +36,11 @@ export interface RecentTicket {
   title: string;
   type: string;
   cycleDays: number;
-  resolved: string; // ISO date
+  resolved: string; // human-readable date e.g. "12 Mar 2024"
 }
 
 export interface Collaborator {
-  id: string;
+  id: number;
   name: string;
   sharedTickets: number;
 }
@@ -68,7 +76,7 @@ export interface EvidenceTicket {
 }
 
 export interface Candidate {
-  personId: string;
+  personId: number;
   name: string;
   matchScore: number; // 0–100
   eta: { lo: number; hi: number }; // days

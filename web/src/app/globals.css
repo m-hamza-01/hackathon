@@ -1,1 +1,50 @@
 @import "tailwindcss";
+
+/* ─── Typography bridges ──────────────────────────────────────────────────────
+   Expose the next/font CSS variables as Tailwind font families.
+   font-ui  → Libre Franklin (all prose and UI text)
+   font-code → Spline Sans Mono (numbers, keys, timestamps, chips)
+   ────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --font-ui:   var(--font-ui,   "Libre Franklin", system-ui, sans-serif);
+  --font-code: var(--font-code, "Spline Sans Mono", ui-monospace, monospace);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────────
+   All colour values from the approved Claude Design export.
+   ────────────────────────────────────────────────────────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: oklch(0.19 0.007 90);
+  color: oklch(0.93 0.006 90);
+  font-family: var(--font-ui), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+a { color: oklch(0.78 0.11 155); text-decoration: none; }
+a:hover { color: oklch(0.86 0.11 155); }
+
+::selection { background: oklch(0.45 0.09 155); color: #fff; }
+
+/* ─── Keyframes ───────────────────────────────────────────────────────────────
+   ts-pulse  : loading indicator dot
+   ts-in     : results section entrance
+   ts-sweep  : skeleton shimmer
+   ────────────────────────────────────────────────────────────────────────── */
+@keyframes ts-pulse {
+  0%, 100% { opacity: 0.28; }
+  50%       { opacity: 0.75; }
+}
+@keyframes ts-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ts-sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(300%); }
+}

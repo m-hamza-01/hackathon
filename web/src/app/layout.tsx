@@ -1,5 +1,20 @@
 import type { Metadata } from "next";
+import { Libre_Franklin, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
+
+const libreFranklin = Libre_Franklin({
+  variable: "--font-ui",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const splineSansMono = Spline_Sans_Mono({
+  variable: "--font-code",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "TaskScope",
@@ -12,8 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full bg-white text-gray-900 font-sans antialiased">
+    <html
+      lang="en"
+      className={`${libreFranklin.variable} ${splineSansMono.variable} h-full`}
+    >
+      <body className="min-h-full" style={{ WebkitFontSmoothing: "antialiased" }}>
         {children}
       </body>
     </html>
