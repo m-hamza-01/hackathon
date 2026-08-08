@@ -13,7 +13,7 @@ TaskScope — hackathon project. Ingests a Jira project's full history (tickets,
 
 ## Recently Completed
 - [x] Scoring engine (BM25 + candidate ranking + complexity/ETA): src/engine/{bm25,score,ask}.ts, `npm run ask` CLI works — (2026-08-08)
-- [x] Open-ticket WIP snapshot: fetch:open + load, 2022 open tickets → open_tickets table, WIP penalty live in scoring — (2026-08-08)
+- [x] Open-ticket WIP (task #6): 555 in-progress/patch-available/reopened tickets → main tickets table (resolved NULL); Active WIP section in report; scoring engine reads WIP from main table — (2026-08-08)
 - [x] Jira ingest pipeline (fetch → load → report): 2,000 tickets, 431 people, data/taskscope.db live — (2026-08-08)
 - [x] Validated Apache Jira API: anonymous search works, ~10,146 resolved+assigned KAFKA issues, full comments AND changelog inline in one paginated call — (2026-08-08)
 - [x] Engine scaffold: package.json, tsconfig, .gitignore — (2026-08-08)

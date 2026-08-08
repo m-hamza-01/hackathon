@@ -1,72 +1,173 @@
-// CLI entry point for the scoring engine.
-// Usage:  npm run ask -- "consumer group rebalance stuck after broker failure"
-//         npm run ask -- --demo    (runs 5 pre-defined gnarly queries)
+/**
+ * CLI entry point for the scoring engine.
+ *
+ * Modes:
+ *   --title "..." --desc "..."   Normal query; prints pretty JSON
+ *   --eval                       Leave-one-out evaluation on 25 recent tickets
+ *   --demo                       Run 3 Kafka-flavored sanity queries
+ */
 
-import { queryEngine, QueryResult } from "./score.js";
+import Database from "better-sqlite3";
+import { fileURLToPath } from "url";
+import path from "path";
+import { ask, AskResult } from "./engine.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DB_PATH   = path.resolve(__dirname, "../../data/taskscope.db");
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getArg(args: string[], flag: string): string | null {
+  const i = args.indexOf(flag);
+  return i !== -1 && i + 1 < args.length ? args[i + 1] : null;
+}
+
+// ── Demo queries (Kafka-flavored) ─────────────────────────────────────────────
 
 const DEMO_QUERIES = [
-  "consumer group rebalance stuck after broker restart partition assignment",
-  "producer idempotent acks message duplication sequence number reset",
-  "streams stateful task migration state store restoration rolling upgrade",
-  "connect distributed offset commit race condition rebalance loop",
-  "log compaction corrupt index segment unclean leader shutdown",
+  {
+    title: "Streams consumer lag grows unbounded after broker restart",
+    desc:  "After a planned broker restart the Kafka Streams consumer group shows continuously growing lag on several partitions. The application appears healthy and processes records normally on the remaining partitions. Suspect issue with partition reassignment not triggering a task restart.",
+  },
+  {
+    title: "Connect JDBC sink connector silently drops records on large CLOB columns",
+    desc:  "The JDBC sink connector stops writing rows to the target database table when source records contain CLOB or BLOB columns exceeding 64 KB without raising an error or DLQ entry. The issue reproduces on both MySQL and PostgreSQL targets with the distributed Connect cluster.",
+  },
+  {
+    title: "Log compaction leaves tombstone records beyond configured retention",
+    desc:  "After enabling log compaction on a topic, tombstone (null-value) records persist well beyond delete.retention.ms. Observation: the compaction thread only runs during active-segment rolls; idle topics with low traffic never compact tombstones. The cleaner thread log shows no errors.",
+  },
 ];
 
-function printResult(result: QueryResult) {
-  const { query, complexity, candidates, neighbor_tickets } = result;
+// ── Normal query ──────────────────────────────────────────────────────────────
 
-  console.log(`\n${"═".repeat(70)}`);
-  console.log(`Query: "${query}"`);
-  console.log("═".repeat(70));
+function runQuery(title: string, desc: string) {
+  const result = ask({ title, description: desc });
+  console.log(JSON.stringify(result, null, 2));
+}
 
-  console.log(`\nComplexity estimate  (from ${complexity.sample_size} similar tickets)`);
-  console.log(`  p25 / median / p75 : ${complexity.p25_days}d / ${complexity.median_days}d / ${complexity.p75_days}d`);
+// ── Leave-one-out evaluation ──────────────────────────────────────────────────
 
-  console.log(`\nTop candidates`);
-  console.log(`  ${"Name".padEnd(22)} ${"Score".padStart(5)}  ${"Speed".padStart(5)}  ${"Med.cycle".padStart(9)}  ${"Tickets".padStart(7)}  ${"WIP".padStart(3)}  Personalized ETA (p25/med/p75)`);
-  console.log(`  ${"─".repeat(22)} ${"─".repeat(5)}  ${"─".repeat(5)}  ${"─".repeat(9)}  ${"─".repeat(7)}  ${"─".repeat(3)}  ${"─".repeat(30)}`);
+function runEval() {
+  const db = new Database(DB_PATH, { readonly: true });
 
-  for (const c of candidates) {
-    const wip   = c.wip > 0 ? `${c.wip}` : " -";
-    const speed = c.speed_ratio >= 1 ? `+${c.speed_ratio.toFixed(1)}x` : `${c.speed_ratio.toFixed(1)}x`;
-    const eta   = `${c.eta.p25_days}d / ${c.eta.median_days}d / ${c.eta.p75_days}d`;
-    console.log(
-      `  ${c.display_name.padEnd(22)} ${String(c.score).padStart(5)}  ${speed.padStart(5)}  ${String(c.median_cycle_days + "d").padStart(9)}  ${String(c.relevant_count + "/" + c.ticket_count).padStart(7)}  ${wip.padStart(3)}  ${eta}`
-    );
+  // Pick 25 most recently resolved non-Sub-task tickets with an assigned person
+  const evalTickets = db.prepare(`
+    SELECT t.id, t.key, t.title, t.description, t.assignee_id, p.display_name
+    FROM tickets t
+    JOIN people p ON p.id = t.assignee_id
+    WHERE t.resolved IS NOT NULL
+      AND t.type != 'Sub-task'
+      AND t.assignee_id IS NOT NULL
+    ORDER BY t.resolved DESC
+    LIMIT 25
+  `).all() as Array<{
+    id: number;
+    key: string;
+    title: string;
+    description: string | null;
+    assignee_id: number;
+    display_name: string;
+  }>;
+
+  db.close();
+
+  let hit1 = 0;
+  let hit3 = 0;
+  const details: Array<{
+    key: string;
+    trueAssignee: string;
+    rank: number | null;
+    top3: string[];
+  }> = [];
+
+  for (const ticket of evalTickets) {
+    const result: AskResult = ask({
+      title:       ticket.title,
+      description: ticket.description ?? "",
+      excludeId:   ticket.id,
+    });
+
+    const candidates = result.candidates;
+    const trueAssignee = ticket.display_name;
+
+    const rankIdx = candidates.findIndex(c => c.displayName === trueAssignee);
+    const rank = rankIdx === -1 ? null : rankIdx + 1;
+
+    if (rank === 1) hit1++;
+    if (rank !== null && rank <= 3) hit3++;
+
+    details.push({
+      key:          ticket.key,
+      trueAssignee,
+      rank,
+      top3: candidates.slice(0, 3).map(c => c.displayName),
+    });
   }
 
-  if (candidates.length > 0) {
-    const top = candidates[0];
-    console.log(`\nTop pick: ${top.display_name}  (score ${top.score}/100)`);
-    console.log(`  Evidence tickets:`);
-    for (const e of top.evidence) {
-      const cycle = e.cycle_days !== null ? `${Math.round(e.cycle_days)}d` : "N/A";
-      console.log(`    [${e.key}] (bm25=${e.bm25_score}, cycle=${cycle}) ${e.title.slice(0, 70)}`);
-    }
-  }
+  const n = evalTickets.length;
+  console.log(`\nLeave-one-out evaluation  (n=${n} recent non-Sub-task tickets)\n`);
+  console.log(`  Hit@1 : ${hit1}/${n}  (${((hit1 / n) * 100).toFixed(1)}%)`);
+  console.log(`  Hit@3 : ${hit3}/${n}  (${((hit3 / n) * 100).toFixed(1)}%)\n`);
 
-  console.log(`\nNearest neighbor tickets (BM25 top-5):`);
-  for (const n of neighbor_tickets.slice(0, 5)) {
-    const cycle = n.cycle_days !== null ? `${Math.round(n.cycle_days)}d` : "N/A";
-    console.log(`  [${n.key}] bm25=${n.bm25_score}  cycle=${cycle}  ${n.assignee}  "${n.title.slice(0, 55)}"`);
+  console.log("  Per-ticket results:");
+  console.log(`  ${"Ticket".padEnd(14)} ${"True Assignee".padEnd(24)} ${"Rank".padStart(4)}  Top-3 candidates`);
+  console.log(`  ${"─".repeat(14)} ${"─".repeat(24)} ${"─".repeat(4)}  ${"─".repeat(50)}`);
+  for (const d of details) {
+    const rankStr = d.rank != null ? `#${d.rank}` : "miss";
+    console.log(`  ${d.key.padEnd(14)} ${d.trueAssignee.padEnd(24)} ${rankStr.padStart(4)}  ${d.top3.join(", ")}`);
   }
 }
+
+// ── Demo run ──────────────────────────────────────────────────────────────────
+
+function runDemo() {
+  for (const q of DEMO_QUERIES) {
+    console.log(`\n${"═".repeat(72)}`);
+    console.log(`Query: "${q.title}"`);
+    console.log("═".repeat(72));
+    const result = ask({ title: q.title, description: q.desc });
+    const { complexity, candidates } = result;
+    console.log(`\nComplexity: ${complexity.label}  (median ${complexity.medianDays}d, range ${complexity.rangeDays[0]}–${complexity.rangeDays[1]}d)`);
+    console.log(`\nTop candidates:`);
+    for (const c of candidates.slice(0, 5)) {
+      console.log(
+        `  ${String(c.matchScore).padStart(3)}/100  ${c.displayName.padEnd(24)}` +
+        `  matches=${c.matchCount}  wip=${c.activeWip}  eta=${c.eta.lo}–${c.eta.hi}d`
+      );
+      for (const e of c.evidence.slice(0, 2)) {
+        console.log(`          [${e.key}] ${e.cycleDays != null ? e.cycleDays + "d" : "N/A"}  "${e.title.slice(0, 60)}"`);
+      }
+    }
+  }
+}
+
+// ── Entry ─────────────────────────────────────────────────────────────────────
 
 function main() {
   const args = process.argv.slice(2);
 
-  if (args.includes("--demo") || args.length === 0) {
-    console.log("Running 5 demo queries…\n");
-    for (const q of DEMO_QUERIES) {
-      const result = queryEngine(q, { topK: 30, topCandidates: 5 });
-      printResult(result);
-    }
+  if (args.includes("--eval")) {
+    runEval();
     return;
   }
 
-  const query = args.join(" ");
-  const result = queryEngine(query, { topK: 30, topCandidates: 10 });
-  printResult(result);
+  if (args.includes("--demo") || args.length === 0) {
+    runDemo();
+    return;
+  }
+
+  const title = getArg(args, "--title");
+  const desc  = getArg(args, "--desc");
+
+  if (!title) {
+    console.error("Usage: npm run ask -- --title \"...\" [--desc \"...\"]");
+    console.error("       npm run ask -- --eval");
+    console.error("       npm run ask -- --demo");
+    process.exit(1);
+  }
+
+  runQuery(title, desc ?? "");
 }
 
 main();

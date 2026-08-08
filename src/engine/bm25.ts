@@ -1,9 +1,19 @@
-// BM25 index over ticket text.
-// Standard parameters: k1=1.5, b=0.75.
+/**
+ * BM25 full-text index over Jira ticket text.
+ *
+ * Field weighting via repetition (no multi-field BM25 complexity):
+ *   title       × 3  — strongest domain signal
+ *   components  × 2  — area signal; trimmed to strip trailing whitespace
+ *   description × 1
+ *   labels      × 1
+ *
+ * Parameters: k1 = 1.4, b = 0.75  (standard; tuned slightly toward shorter docs)
+ */
 
-const K1 = 1.5;
+const K1 = 1.4;
 const B  = 0.75;
 
+// General English + tracker-noise stopwords
 const STOPWORDS = new Set([
   "a","an","the","and","or","but","in","on","at","to","for","of","with",
   "is","are","was","were","be","been","being","have","has","had","do","does",
@@ -13,10 +23,11 @@ const STOPWORDS = new Set([
   "than","when","where","who","which","what","how","why","from","by","via",
   "into","onto","upon","about","above","below","between","after","before",
   "issue","ticket","jira","kafka","apache","fix","fixed","bug","task",
-  "also","just","will","can","use","used","using","new","get","set",
+  "also","just","use","used","using","new","get","set","one","two","three",
 ]);
 
 export function tokenize(text: string): string[] {
+  if (!text) return [];
   return text
     .toLowerCase()
     .split(/\W+/)
@@ -36,10 +47,12 @@ export interface DocMeta {
   id: number;
   key: string;
   title: string;
+  type: string | null;
   resolved: string | null;
   assignee_id: number | null;
   cycle_days: number | null;
   work_days: number | null;
+  comment_count: number | null;
 }
 
 export interface BM25Index {
@@ -63,22 +76,27 @@ export interface RawDoc {
   assignee_id: number | null;
   cycle_days: number | null;
   work_days: number | null;
+  type?: string | null;
+  comment_count?: number | null;
 }
 
 export function buildIndex(rawDocs: RawDoc[]): BM25Index {
-  const postings  = new Map<string, Map<number, number>>();
+  const postings   = new Map<string, Map<number, number>>();
   const docLengths = new Map<number, number>();
   const docs: DocMeta[] = [];
-  const docById  = new Map<number, DocMeta>();
+  const docById    = new Map<number, DocMeta>();
   let totalLen = 0;
 
   for (const d of rawDocs) {
-    // Cap description to 1500 chars to keep index lean
+    // Components need .trim() — raw data contains "producer " (trailing space)
+    const comps = tryParseArray(d.components).map((c) => c.trim());
+
+    // Boost title (×3) and components (×2) via repetition; cap description at 2000 chars
     const text = [
-      d.title ?? "",
-      (d.description ?? "").slice(0, 1500),
-      ...tryParseArray(d.components),
-      ...tryParseArray(d.labels),
+      d.title ?? "", d.title ?? "", d.title ?? "",          // title × 3
+      comps.join(" "), comps.join(" "),                      // components × 2
+      (d.description ?? "").slice(0, 2000),                  // description × 1
+      ...tryParseArray(d.labels),                            // labels × 1
     ].join(" ");
 
     const tokens = tokenize(text);
@@ -86,13 +104,15 @@ export function buildIndex(rawDocs: RawDoc[]): BM25Index {
     totalLen += tokens.length;
 
     const meta: DocMeta = {
-      id: d.id,
-      key: d.key,
-      title: d.title ?? "",
-      resolved: d.resolved,
-      assignee_id: d.assignee_id,
-      cycle_days: d.cycle_days,
-      work_days: d.work_days,
+      id:            d.id,
+      key:           d.key,
+      title:         d.title ?? "",
+      type:          d.type ?? null,
+      resolved:      d.resolved,
+      assignee_id:   d.assignee_id,
+      cycle_days:    d.cycle_days,
+      work_days:     d.work_days,
+      comment_count: d.comment_count ?? null,
     };
     docs.push(meta);
     docById.set(d.id, meta);
@@ -132,7 +152,7 @@ export function search(idx: BM25Index, query: string, topK = 50): SearchResult[]
     const posting = idx.postings.get(term);
     if (!posting) continue;
 
-    const df = posting.size;
+    const df  = posting.size;
     const idf = Math.log((idx.N - df + 0.5) / (df + 0.5) + 1);
 
     for (const [docId, tf] of posting) {

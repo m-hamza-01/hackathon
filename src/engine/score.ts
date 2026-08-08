@@ -113,10 +113,10 @@ function buildEngine(): Engine {
     )
     .all();
 
-  // WIP counts from open_tickets (0 if table is empty)
+  // WIP counts: open tickets in the main table (resolved IS NULL)
   const wipRows = db
     .prepare<[], { assignee_id: number; cnt: number }>(
-      "SELECT assignee_id, COUNT(*) AS cnt FROM open_tickets GROUP BY assignee_id"
+      "SELECT assignee_id, COUNT(*) AS cnt FROM tickets WHERE resolved IS NULL GROUP BY assignee_id"
     )
     .all();
   const wipMap = new Map<number, number>(wipRows.map((r) => [r.assignee_id, r.cnt]));
