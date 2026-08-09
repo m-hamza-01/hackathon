@@ -17,6 +17,7 @@
  */
 
 import { NextResponse, type NextRequest } from "next/server";
+import { appOrigin } from "@/lib/app-origin";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -119,8 +120,8 @@ interface GitHubAccessToken {
 export async function GET(req: NextRequest): Promise<NextResponse> {
   loadDotenv();
 
-  // NextResponse.redirect requires absolute URLs — derive origin from the request.
-  const origin = new URL(req.url).origin;
+  // NextResponse.redirect requires absolute URLs — public origin, proxy-aware.
+  const origin = appOrigin(req);
   const redirect = (query: string) =>
     NextResponse.redirect(`${origin}/connect?${query}`);
 

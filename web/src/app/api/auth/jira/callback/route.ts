@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { appOrigin } from "@/lib/app-origin";
 import { type NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
@@ -73,8 +74,8 @@ interface JiraOAuthConnection {
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  // Derive origin from the incoming request for absolute redirect URLs.
-  const origin = new URL(req.url).origin;
+  // Public origin for absolute redirect URLs (proxy-aware).
+  const origin = appOrigin(req);
 
   function errorRedirect(reason: string): NextResponse {
     return NextResponse.redirect(
