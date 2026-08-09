@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (connect flows + dynamic ingest + PR data landed)
+> Last updated: 2026-08-09 (renamed to Foreman; Railway deploy config landed; user wiring up live Jira + GitHub apps)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,9 +9,13 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] None — all four connect/integration builds landed and committed
+- [ ] User testing the live connect flows: Jira OAuth blocked on an Atlassian account with a Jira site (Access denied at consent — creating a free site or switching accounts); GitHub App `foreman-gdg-kolachi` registered, waiting on PEM → data/github-app.pem
+- [ ] First Railway deploy: config committed (a6bba92), needs push + volume at /app/data + env vars on Railway
 
 ## Recently Completed
+- [x] Railway deploy config (agent: railway-deploy): root build/start scripts, seed/foreman.db (12 MB) + scripts/ensure-db.mjs first-boot copy that respects volume mounts, README deploy section; verified via root build + live PORT test — (2026-08-09, a6bba92)
+- [x] Rename TaskScope → Foreman everywhere (agent: rename-foreman): UI, docs, package names, TASKSCOPE_* → FOREMAN_* env vars, data/foreman.db; grep-zero verified, server restarted on new build — (2026-08-09, 3932fa1)
+- [x] Repo pushed to github.com/m-hamza-01/hackaton (user pushed; classifier blocks supervisor pushes) — (2026-08-09, e455306)
 - [x] Supervisor integration wiring: OAuth session preferred over env auth in ingest, GitHub App token feeds `gh` via GH_TOKEN, GithubPanel mounted on /connect; prod smoke + screenshot verified — (2026-08-09, 3d3346f)
 - [x] GitHub App "Connect" flow (agent: github-app-connect): RS256 app JWT via node:crypto, install-once Setup URL callback with spoofing guard, no tokens on disk; supervisor fixed relative-redirect crash (NextResponse.redirect needs absolute URLs) — (2026-08-09, fb240ea)
 - [x] GitHub PR integration (agent: github-integration): 8,100 apache/kafka PRs since 2024 via GraphQL, prs + pr_tickets tables loaded into live DB (93.8% of resolved tickets covered); engine/UI wiring proposal in docs/GITHUB_INTEGRATION.md awaits user decision — (2026-08-09, 37bef30)
@@ -23,7 +27,6 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [x] Dashboard on real SQLite (task #5): /api/team, /api/person, /api/ask on ported engine; verified via prod build + screenshots — (2026-08-09)
 
 ## Upcoming / Planned
-- [ ] User: register the Atlassian OAuth app (docs/JIRA_OAUTH_SETUP.md) and the GitHub App (docs/GITHUB_APP_SETUP.md) — both need Basim's own logins; flows are live at /connect once credentials land in `.env`
 - [ ] Decide with user: PR-metrics surfacing (prMetrics on /api/person, complexity corroboration in /ask, PR badges on evidence tickets) — proposal in docs/GITHUB_INTEGRATION.md; data already loaded
 - [ ] User: drop ANTHROPIC_API_KEY into project-root `.env` to enable live Claude synthesis (template fallback active until then)
 - [ ] Optional: rehearse DEMO.md flow once on the demo machine
@@ -48,6 +51,8 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - (2026-08-09) Connect-style auth is the primary path everywhere (Atlassian OAuth 3LO, install-once GitHub App); .env API tokens are developer fallback only — Basim's standing UX preference
 - (2026-08-09) GitHub App chosen over OAuth App: fine-grained read-only repo grants, survives org OAuth restrictions, short-lived installation tokens never stored on disk
 - (2026-08-09) PR data (prs, pr_tickets) loaded into the live DB — additive tables only, original tables untouched, pre-load backup at scratchpad taskscope-pre-github.db.bak; nothing reads them until the user approves the surfacing proposal
+- (2026-08-09) App renamed TaskScope → Foreman (Basim's call); folder name and scratchpad backup filenames unchanged
+- (2026-08-09) Railway over Vercel for production — connect flows persist rotating OAuth tokens on disk and serverless filesystems would drop them; volume at /app/data + committed seed DB (seed/foreman.db) copied on first boot
 
 ## Notes
 - Deploy: any Node host (better-sqlite3 is native — plain VM/container fine, serverless needs rework). `cd web && npm run build && npm start`.
