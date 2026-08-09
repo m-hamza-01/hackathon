@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (LIVE on Railway: Jira connected in prod, gate working, simbaforge.com forwards via Cloudflare; GitHub connected locally, prod PEM var malformed — needs re-paste as base64)
+> Last updated: 2026-08-09 (FULLY LIVE on Railway: Jira + GitHub both connected in prod, gate + demo mode working, simbaforge.com forwards via Cloudflare)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,10 +9,10 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] Railway: GITHUB_APP_PRIVATE_KEY is set but MALFORMED — prod setup callback fails with reason=jwt_error (key loads, signing throws; likely newlines flattened when pasting raw PEM). Fix: replace the variable's value with the single line in `data/github-app.pem.b64` (verified to decode to the working key), then hit `/api/auth/github/setup?installation_id=152337776` on prod — no reinstall needed, the installation already exists on GitHub
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] GitHub App CONNECTED IN PROD: Basim replaced the Railway GITHUB_APP_PRIVATE_KEY with the base64 line (probe flipped jwt_error → installation_not_found, proving signing), supervisor re-triggered setup with installation 152337776 → github=ok, connected:true, Simba256, 46 repos. Both sources now live in prod. Privacy page also live at /privacy — (2026-08-09)
 - [x] Demo mode (agent: demo-mode; supervisor verified + added stale-cookie flash guard): "Explore with sample data" button on /connect sets a 30-day foreman_demo cookie that passes the hard gate without Jira; SAMPLE DATA header chip + "Exit demo" affordance; real connections take precedence everywhere; verified via curl matrix on simulated pre-connect prod (seed DB, no oauth file) — judges can now browse without connecting — (2026-08-09, cc888e4)
 - [x] Ask-page ghost suggestion (supervisor, inline): replaced the two example chips with one translucent placeholder task (same as DEMO.md deep-link — "Streams state store corruption after rebalance"), Tab fills both fields, hint chip disappears once typing starts; deliberate ::placeholder color in globals.css — (2026-08-09, 894ffce)
 - [x] Privacy policy page at /privacy (needed for Atlassian Distribution "Sharing" form): static server component outside the connect gate, matches app design (dark, mono overlines, orange accent), honest content — read-only scopes, server-side token storage, Anthropic API for prose, retention/revocation via provider settings; verified 200 + prerenders static so data-less Railway builds are safe — (2026-08-09)
