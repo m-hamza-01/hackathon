@@ -6,19 +6,12 @@ import type { AskResponse, Complexity, Candidate, EvidenceTicket, TeamMeta } fro
 import { initials, tintOf, pips, fmtDays, complexityColor, candidateBand } from "@/lib/helpers";
 import { AppHeader } from "@/components/AppHeader";
 
-// Example tasks shown as chips in the input card
-const EXAMPLES = [
-  {
-    label: "Rebalance latency regression",
-    title: "Consumer group rebalance latency regression after 3.7 upgrade",
-    desc: "Several teams report rebalances taking 30–60s where they used to take under 5s. Suspected in the group coordinator path but not confirmed. Needs reproduction, then a fix or a revert recommendation.",
-  },
-  {
-    label: "Add tiered-storage metrics",
-    title: "Expose per-partition tiered storage lag metrics",
-    desc: "Operators cannot currently tell how far behind remote log upload is for a given partition. Add metrics and wire them through the broker metrics registry.",
-  },
-];
+// One ghost suggestion shown as translucent placeholder text in the empty
+// input card — Tab fills both fields. Same task as the DEMO.md deep-link.
+const SUGGESTION = {
+  title: "Streams state store corruption after rebalance",
+  desc: "RocksDB state store gets corrupted when a consumer group rebalance happens mid-commit in Kafka Streams.",
+};
 
 // ─── ComplexityCard ────────────────────────────────────────────────────────────
 // Shows complexity label (colour-coded), the range bar with median marker,
@@ -242,30 +235,33 @@ export default function AskPage() {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Task title"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+              if (e.key === "Tab" && !title.trim()) {
+                e.preventDefault();
+                setTitle(SUGGESTION.title);
+                setDesc(SUGGESTION.desc);
+              }
+            }}
+            placeholder={SUGGESTION.title}
             style={{ width: "100%", border: "none", background: "none", color: "oklch(0.95 0.006 90)", fontFamily: "var(--font-ui), sans-serif", fontSize: 17, fontWeight: 550, letterSpacing: "-0.012em", padding: "14px 16px 8px", outline: "none" }}
           />
           <textarea
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            placeholder="What needs to happen, and what's known so far…"
+            placeholder={title.trim() ? "What needs to happen, and what's known so far…" : SUGGESTION.desc}
             rows={3}
             style={{ width: "100%", border: "none", background: "none", color: "oklch(0.82 0.006 90)", fontFamily: "var(--font-ui), sans-serif", fontSize: "13.5px", lineHeight: 1.6, padding: "0 16px 12px", outline: "none", resize: "vertical" }}
           />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "10px 12px 0", borderTop: "1px solid oklch(0.27 0.008 90)" }}>
-            {/* Example chips */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", paddingLeft: 4 }}>
-              {EXAMPLES.map((ex) => (
-                <button
-                  key={ex.label}
-                  onClick={() => { setTitle(ex.title); setDesc(ex.desc); }}
-                  style={{ fontSize: "11.5px", padding: "5px 10px", borderRadius: 20, border: "1px solid oklch(0.32 0.008 90)", background: "none", color: "oklch(0.7 0.008 90)", cursor: "pointer", fontFamily: "var(--font-ui), sans-serif" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.55 0.09 50)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.88 0.006 90)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.32 0.008 90)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.7 0.008 90)"; }}>
-                  {ex.label}
-                </button>
-              ))}
+            {/* Ghost-suggestion hint — only while the input is empty */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 4, fontFamily: "var(--font-code)", fontSize: 10, letterSpacing: "0.06em", color: "oklch(0.55 0.008 90)" }}>
+              {!title.trim() && (
+                <>
+                  <span style={{ padding: "2px 7px", borderRadius: 3, border: "1px solid oklch(0.32 0.008 90)" }}>TAB</span>
+                  <span>fills in the example</span>
+                </>
+              )}
             </div>
             {/* Submit */}
             <button

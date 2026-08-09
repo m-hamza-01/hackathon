@@ -31,6 +31,9 @@ a:hover { color: oklch(0.84 0.16 50); }
 
 ::selection { background: oklch(0.5 0.13 50); color: #fff; }
 
+/* Ghost-suggestion text in empty inputs (see /ask) */
+::placeholder { color: oklch(0.48 0.008 90); opacity: 1; }
+
 /* ─── Keyframes ───────────────────────────────────────────────────────────────
    ts-pulse  : loading indicator dot
    ts-in     : results section entrance
