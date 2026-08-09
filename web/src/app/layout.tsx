@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Libre_Franklin, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,8 +17,26 @@ const splineSansMono = Spline_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Foreman",
-  description: "Manager-side work-intelligence dashboard over Jira history.",
+  title: {
+    default: "Foreman",
+    template: "%s · Foreman",
+  },
+  description:
+    "Who should take this task, how complex is it, how long will it take — answered from your team's real Jira history, with citations.",
+  applicationName: "Foreman",
+  openGraph: {
+    title: "Foreman",
+    description:
+      "Work-intelligence dashboard over Jira history. Recommends with evidence — the manager decides.",
+    siteName: "Foreman",
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#151410",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
