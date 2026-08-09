@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 // config.ts must be imported before db.ts so loadDotenv() runs first,
 // ensuring TASKSCOPE_DATA_DIR (and other env vars) are set before the DB opens.
-import { config } from "./config.js";
+import { config, applyOAuthOverride } from "./config.js";
+import { getOAuthConnection } from "./oauth.js";
 import { RAW_DIR } from "../db.js";
 
 const MAX_RESULTS = 100;
@@ -231,6 +232,15 @@ async function fetchOpenCloud() {
 
 async function main() {
   const args = process.argv.slice(2);
+
+  // A one-click OAuth connection (made at /connect) takes priority over env auth.
+  const oauth = await getOAuthConnection();
+  if (oauth) {
+    applyOAuthOverride(oauth);
+    console.log(
+      `Using OAuth connection. Set JIRA_PROJECT in .env to pick the project (current: ${config.project}).`
+    );
+  }
 
   console.log(
     `Jira config: api=${config.api} project=${config.project} baseUrl=${config.baseUrl}`

@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import path from "path";
+import { getInstallationToken } from "./auth.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -136,6 +137,16 @@ async function fetchPage(cursor: string | null, retries = 3): Promise<GHPage> {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
+  // A GitHub App installation (made at /connect) takes priority over the
+  // gh CLI's stored login — gh reads GH_TOKEN from the environment.
+  if (!process.env.GH_TOKEN) {
+    const appToken = await getInstallationToken();
+    if (appToken) {
+      process.env.GH_TOKEN = appToken.token;
+      console.log("Using GitHub App installation token.");
+    }
+  }
+
   const maxLabel = isFinite(MAX_PAGES) ? `, max-pages=${MAX_PAGES}` : "";
   console.log(`\nFetching apache/kafka PRs (since=${SINCE}${maxLabel})…\n`);
 

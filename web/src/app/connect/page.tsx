@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AppHeader } from "@/app/page";
+import { GithubPanel } from "./GithubPanel";
 
 interface StatusResponse {
   connected: boolean;
@@ -501,6 +502,11 @@ function ConnectInner() {
             ) : (
               <DisconnectedCard />
             )}
+
+            {/* GitHub App connect — PR context for tickets */}
+            <div style={{ marginBottom: 16 }}>
+              <GithubPanel />
+            </div>
 
             {/* Server / DC footnote — always visible */}
             <div

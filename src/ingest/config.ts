@@ -94,3 +94,19 @@ function buildConfig(): JiraConfig {
 }
 
 export const config: JiraConfig = buildConfig();
+
+// One-click OAuth connection (from /connect) takes priority over env auth.
+// Mutates config in place: Cloud API via api.atlassian.com/ex/jira/{cloudId},
+// Bearer token auth, and — since the legacy KAFKA JQL only applies to the
+// Apache demo instance — generic JQL templates unless env overrides exist.
+export function applyOAuthOverride(conn: { baseUrl: string; authHeader: string }): void {
+  config.baseUrl = conn.baseUrl;
+  config.authHeader = conn.authHeader;
+  config.api = "cloud";
+  if (!process.env.JIRA_JQL_RESOLVED) {
+    config.jqlResolved = `project = ${config.project} AND resolutiondate is not EMPTY AND assignee is not EMPTY ORDER BY resolved DESC`;
+  }
+  if (!process.env.JIRA_JQL_OPEN) {
+    config.jqlOpen = `project = ${config.project} AND resolutiondate is EMPTY AND statusCategory = "In Progress" AND assignee is not EMPTY ORDER BY updated DESC`;
+  }
+}
