@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { isJiraConnected } from "@/lib/jira-connection";
 
 // force-dynamic is essential: without it Next.js prerenders this layout at
@@ -6,9 +7,13 @@ import { isJiraConnected } from "@/lib/jira-connection";
 // "not connected" redirect would be baked into the static output forever.
 export const dynamic = "force-dynamic";
 
-export default function GatedLayout({ children }: { children: React.ReactNode }) {
-  if (!isJiraConnected()) {
+export default async function GatedLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const isDemo = cookieStore.get("foreman_demo")?.value === "1";
+
+  if (!isJiraConnected() && !isDemo) {
     redirect("/connect");
   }
+
   return <>{children}</>;
 }

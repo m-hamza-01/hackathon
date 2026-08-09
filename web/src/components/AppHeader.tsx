@@ -14,6 +14,7 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
 
   const [jira, setJira] = useState<SourceStatus | null>(null);
   const [github, setGithub] = useState<SourceStatus | null>(null);
+  const [demoActive, setDemoActive] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/jira/status")
@@ -24,6 +25,11 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
       .then((r) => r.json())
       .then((d: SourceStatus) => setGithub(d))
       .catch(() => setGithub({ connected: false }));
+  }, []);
+
+  // document is undefined during SSR — only read the cookie client-side.
+  useEffect(() => {
+    setDemoActive(document.cookie.split(";").some((c) => c.trim().startsWith("foreman_demo=1")));
   }, []);
 
   function navStyle(active: boolean): React.CSSProperties {
@@ -85,6 +91,17 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
             <button onClick={() => router.push("/ask")} style={navStyle(isAsk)}>Ask</button>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 14, borderLeft: "1px solid oklch(0.3 0.008 90)" }}>
+            {/* Show only in demo mode when Jira is not connected; never when Jira is connected.
+                Wait for the status fetch so it can't flash for connected users with a stale cookie. */}
+            {demoActive && jiraLoaded && !jiraConnected && (
+              <div
+                title="Browsing demo data — connect Jira to use your own"
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", borderRadius: 20, border: "1px solid oklch(0.3 0.008 90)", background: "oklch(0.24 0.008 90)", fontFamily: "var(--font-code)", fontSize: "10px", letterSpacing: "0.05em", color: "oklch(0.6 0.008 90)" }}
+              >
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "oklch(0.45 0.008 90)" }} />
+                SAMPLE DATA
+              </div>
+            )}
             <div title={jiraTip} style={pillStyle(jiraConnected, jiraLoaded)}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: jiraLoaded && jiraConnected ? "oklch(0.72 0.18 50)" : "oklch(0.45 0.008 90)" }} />
               {jiraLabel}

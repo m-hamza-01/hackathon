@@ -102,6 +102,7 @@ function ConnectInner() {
   const [jira, setJira] = useState<JiraStatus | null>(null);
   const [github, setGithub] = useState<GitHubStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [demoActive, setDemoActive] = useState(false);
 
   useEffect(() => {
     let done = 0;
@@ -117,6 +118,11 @@ function ConnectInner() {
       .then((d: GitHubStatus) => { setGithub(d); tick(); })
       .catch(() => { setGithub({ connected: false, appConfigured: false }); tick(); });
   }, [statusParam, githubParam]);
+
+  // Read demo cookie client-side; document is undefined during SSR so guard it.
+  useEffect(() => {
+    setDemoActive(document.cookie.split(";").some((c) => c.trim().startsWith("foreman_demo=1")));
+  }, []);
 
   const jiraConnected = jira?.connected ?? false;
   const githubConnected = github?.connected ?? false;
@@ -266,6 +272,37 @@ function ConnectInner() {
                 </a>
               )}
             </div>
+
+            {/* ── Demo affordance (only when Jira not connected) ──────────── */}
+            {!jiraConnected && (
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 18, alignItems: "center", border: `1px solid ${C.btnNeutralBorder}`, borderRadius: 6, background: "oklch(0.215 0.007 90)", padding: "20px 22px", marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 650, letterSpacing: "-0.015em", marginBottom: 5 }}>
+                    {demoActive ? "Demo mode is on" : "Just exploring?"}
+                  </div>
+                  <div style={{ fontSize: "12.5px", lineHeight: 1.55, color: "oklch(0.63 0.008 90)" }}>
+                    {demoActive
+                      ? "You're browsing Apache Kafka's public Jira history, pseudonymized. Connect Jira to use your own data."
+                      : "Browse the dashboard on real history from Apache Kafka’s public Jira, pseudonymized. No connection needed."}
+                  </div>
+                </div>
+                {demoActive ? (
+                  <a
+                    href="/api/demo/stop"
+                    style={{ flexShrink: 0, display: "inline-block", fontFamily: "var(--font-ui), sans-serif", fontSize: "12px", fontWeight: 550, padding: "7px 14px", borderRadius: 5, border: `1px solid ${C.btnNeutralBorder}`, background: "none", color: C.btnNeutralText, cursor: "pointer", textDecoration: "none" }}
+                  >
+                    Exit demo
+                  </a>
+                ) : (
+                  <a
+                    href="/api/demo/start"
+                    style={{ flexShrink: 0, display: "inline-block", fontFamily: "var(--font-ui), sans-serif", fontSize: "12.5px", fontWeight: 600, padding: "9px 18px", borderRadius: 5, border: `1px solid ${C.btnNeutralBorder}`, background: "none", color: C.btnNeutralText, cursor: "pointer", textDecoration: "none" }}
+                  >
+                    Explore with sample data
+                  </a>
+                )}
+              </div>
+            )}
 
             {/* ── How it works (subordinated; only when Jira not connected) ── */}
             {!jiraConnected && (
