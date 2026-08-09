@@ -20,6 +20,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { loadGithubPrivateKey } from "@/lib/github-key";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -134,19 +135,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const appId = process.env.GITHUB_APP_ID;
   const dataDir = resolveDataDir();
-  const pemPath =
-    process.env.GITHUB_APP_PRIVATE_KEY_PATH ??
-    path.join(dataDir, "github-app.pem");
 
   if (!appId) {
     return redirect("github=error&reason=app_not_configured");
   }
 
-  let pemKey: string;
-  try {
-    pemKey = fs.readFileSync(pemPath, "utf8");
-  } catch {
-    console.error("[github/setup] PEM file not found at:", pemPath);
+  const pemKey = loadGithubPrivateKey(dataDir);
+  if (!pemKey) {
+    console.error(
+      "[github/setup] No private key found — set GITHUB_APP_PRIVATE_KEY or place the PEM at",
+      process.env.GITHUB_APP_PRIVATE_KEY_PATH ?? `${dataDir}/github-app.pem`
+    );
     return redirect("github=error&reason=pem_not_found");
   }
 

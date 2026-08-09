@@ -63,6 +63,14 @@ GITHUB_APP_SLUG=foreman
 GITHUB_APP_PRIVATE_KEY_PATH=data/github-app.pem
 ```
 
+**Railway / cloud deployments** — instead of mounting a PEM file, paste the key contents directly as an env var:
+
+```
+GITHUB_APP_PRIVATE_KEY=<paste full PEM here, or its base64 encoding>
+```
+
+When `GITHUB_APP_PRIVATE_KEY` is set it takes priority over `GITHUB_APP_PRIVATE_KEY_PATH`. The value may be the raw PEM text (the app normalizes escaped `\n` sequences that Railway sometimes inserts) or a base64-encoded version of the PEM.
+
 Restart the Next.js server after editing `.env`.
 
 ---
@@ -102,6 +110,6 @@ Open `http://localhost:3000/connect`. The GitHub panel should show:
 | Symptom | Likely cause |
 |---|---|
 | `/connect` shows "App not configured" | `GITHUB_APP_ID` is missing or the PEM file path is wrong |
-| Setup callback redirects to `?github=error&reason=pem_not_found` | The PEM file doesn't exist at `GITHUB_APP_PRIVATE_KEY_PATH` |
+| Setup callback redirects to `?github=error&reason=pem_not_found` | No private key found — set `GITHUB_APP_PRIVATE_KEY` or ensure the PEM file exists at `GITHUB_APP_PRIVATE_KEY_PATH` |
 | Setup callback redirects to `?github=error&reason=installation_not_found` | The installation ID doesn't match this App — wrong App ID in `.env` |
-| `getInstallationToken()` returns null in PR ingest | Check that `data/github-app.json` exists and `GITHUB_APP_PRIVATE_KEY_PATH` is readable |
+| `getInstallationToken()` returns null in PR ingest | Check that `data/github-app.json` exists and either `GITHUB_APP_PRIVATE_KEY` is set or `GITHUB_APP_PRIVATE_KEY_PATH` is readable |

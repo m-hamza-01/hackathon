@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { loadGithubPrivateKey } from "@/lib/github-key";
 
 interface GitHubAppConnection {
   installationId: number;
@@ -53,25 +54,16 @@ function resolveDataDir(): string {
   return path.join(process.cwd(), "../data");
 }
 
-function pemExists(pemPath: string): boolean {
-  try {
-    fs.accessSync(pemPath, fs.constants.R_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function GET(): Promise<NextResponse> {
   loadDotenv();
 
   const dataDir = resolveDataDir();
   const appId = process.env.GITHUB_APP_ID ?? "";
-  const pemPath =
-    process.env.GITHUB_APP_PRIVATE_KEY_PATH ?? path.join(dataDir, "github-app.pem");
   const appSlug = process.env.GITHUB_APP_SLUG ?? "";
 
-  const appConfigured = Boolean(appId) && pemExists(pemPath);
+  // appConfigured is true when GITHUB_APP_ID is set AND a private key is available
+  // from either the GITHUB_APP_PRIVATE_KEY env var or the PEM file on disk.
+  const appConfigured = Boolean(appId) && loadGithubPrivateKey(dataDir) !== null;
 
   const connFile = path.join(dataDir, "github-app.json");
   try {

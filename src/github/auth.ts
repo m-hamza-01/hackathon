@@ -64,6 +64,36 @@ function resolveDataDir(): string {
   return path.join(process.cwd(), "data");
 }
 
+// ── Private key loader ─────────────────────────────────────────────────────────
+// Resolution order (called lazily inside functions — never at module scope):
+//   1. GITHUB_APP_PRIVATE_KEY env var — PEM string or base64-encoded PEM.
+//      Literal two-char \n sequences are normalized to real newlines (Railway).
+//   2. File at GITHUB_APP_PRIVATE_KEY_PATH, or <dataDir>/github-app.pem.
+// Returns null when neither source is available.
+
+function loadPrivateKey(dataDir: string): string | null {
+  const raw = process.env.GITHUB_APP_PRIVATE_KEY;
+  if (raw) {
+    const trimmed = raw.trim().replace(/^["']|["']$/g, "");
+    if (trimmed.includes("-----BEGIN")) {
+      return trimmed.replace(/\\n/g, "\n");
+    }
+    try {
+      const decoded = Buffer.from(trimmed, "base64").toString("utf8");
+      return decoded || null;
+    } catch {
+      return null;
+    }
+  }
+  const pemPath =
+    process.env.GITHUB_APP_PRIVATE_KEY_PATH ?? path.join(dataDir, "github-app.pem");
+  try {
+    return fs.readFileSync(pemPath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 // ── GitHub API base ────────────────────────────────────────────────────────────
 // GITHUB_API_BASE overrides the real API — used in tests to point at a local mock.
 
@@ -162,18 +192,10 @@ export async function getInstallationToken(): Promise<InstallationToken | null> 
   loadDotenv();
 
   const appId = process.env.GITHUB_APP_ID;
-  const pemPath =
-    process.env.GITHUB_APP_PRIVATE_KEY_PATH ??
-    path.join(resolveDataDir(), "github-app.pem");
-
   if (!appId) return null;
 
-  let pemKey: string;
-  try {
-    pemKey = fs.readFileSync(pemPath, "utf8");
-  } catch {
-    return null;
-  }
+  const pemKey = loadPrivateKey(resolveDataDir());
+  if (!pemKey) return null;
 
   const connection = readAppConnection();
   if (!connection) return null;

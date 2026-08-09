@@ -91,6 +91,7 @@ npm run ingest
    | `GITHUB_APP_ID` | Optional | Enables GitHub PR integration |
    | `GITHUB_APP_SLUG` | Optional | Your GitHub App's slug |
    | `GITHUB_APP_PRIVATE_KEY_PATH` | Optional | Absolute path to the PEM inside the container |
+   | `GITHUB_APP_PRIVATE_KEY` | Optional | PEM contents (or base64 of the PEM) — paste directly in Railway's Variables UI instead of mounting a file |
 
 4. **Atlassian OAuth callback URL** — the Atlassian OAuth app allows a single callback URL per app. For a production demo either update the existing app's callback URL to the Railway domain, or register a second Atlassian OAuth app pointing to Railway and set its credentials in the env vars above.
 
