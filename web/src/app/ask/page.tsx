@@ -69,16 +69,16 @@ export function EvidenceList({ tickets, candidateIdx }: { tickets: EvidenceTicke
       <button
         onClick={() => setOpen((v) => !v)}
         style={{ fontFamily: "var(--font-code)", fontSize: "10.5px", letterSpacing: "0.05em", padding: "5px 11px", borderRadius: 4, border: "1px solid oklch(0.32 0.008 90)", background: "none", color: "oklch(0.7 0.008 90)", cursor: "pointer" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.5 0.05 155)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.88 0.006 90)"; }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.55 0.09 50)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.88 0.006 90)"; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.32 0.008 90)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.7 0.008 90)"; }}>
         {label}
       </button>
 
       {open && (
-        <div style={{ marginTop: 12, borderLeft: "2px solid oklch(0.4 0.06 155)", paddingLeft: 16 }}>
+        <div style={{ marginTop: 12, borderLeft: "2px solid oklch(0.45 0.1 50)", paddingLeft: 16 }}>
           {tickets.map((e) => (
             <div key={e.key} style={{ display: "grid", gridTemplateColumns: "96px minmax(0,1fr) 76px 84px", gap: 12, alignItems: "baseline", padding: "7px 0" }}>
-              <a href="#" style={{ fontFamily: "var(--font-code)", fontSize: "11.5px", color: "oklch(0.78 0.11 155)" }}>{e.key}</a>
+              <a href="#" style={{ fontFamily: "var(--font-code)", fontSize: "11.5px", color: "oklch(0.76 0.16 50)" }}>{e.key}</a>
               <div style={{ fontSize: "12.5px", lineHeight: 1.45, color: "oklch(0.8 0.006 90)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{e.title}</div>
               <div style={{ textAlign: "right", fontFamily: "var(--font-code)", fontSize: "11.5px", color: "oklch(0.62 0.008 90)" }}>{fmtDays(e.cycleDays)}</div>
               <div style={{ textAlign: "right", fontFamily: "var(--font-code)", fontSize: "11px", color: "oklch(0.54 0.008 90)" }}>{e.resolved}</div>
@@ -121,7 +121,7 @@ export function CandidateCard({ candidate, rank }: { candidate: Candidate; rank:
               <div
                 onClick={() => router.push(`/person/${candidate.personId}`)}
                 style={{ fontSize: 16, fontWeight: 650, letterSpacing: "-0.015em", cursor: "pointer" }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.color = "oklch(0.82 0.11 155)")}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.color = "oklch(0.82 0.16 50)")}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.color = "")}>
                 {candidate.name}
               </div>
@@ -261,7 +261,7 @@ export default function AskPage() {
                   key={ex.label}
                   onClick={() => { setTitle(ex.title); setDesc(ex.desc); }}
                   style={{ fontSize: "11.5px", padding: "5px 10px", borderRadius: 20, border: "1px solid oklch(0.32 0.008 90)", background: "none", color: "oklch(0.7 0.008 90)", cursor: "pointer", fontFamily: "var(--font-ui), sans-serif" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.5 0.05 155)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.88 0.006 90)"; }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.55 0.09 50)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.88 0.006 90)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.32 0.008 90)"; (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.7 0.008 90)"; }}>
                   {ex.label}
                 </button>
@@ -271,9 +271,9 @@ export default function AskPage() {
             <button
               onClick={() => submit()}
               disabled={phase === "loading" || !title.trim()}
-              style={{ flexShrink: 0, fontFamily: "var(--font-ui), sans-serif", fontSize: 13, fontWeight: 600, padding: "9px 22px", borderRadius: 5, border: "none", background: "oklch(0.74 0.13 155)", color: "oklch(0.19 0.02 155)", cursor: "pointer", opacity: !title.trim() ? 0.5 : 1 }}
-              onMouseEnter={(e) => { if (title.trim()) (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.8 0.13 155)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.74 0.13 155)"; }}>
+              style={{ flexShrink: 0, fontFamily: "var(--font-ui), sans-serif", fontSize: 13, fontWeight: 600, padding: "9px 22px", borderRadius: 5, border: "none", background: "oklch(0.72 0.18 50)", color: "oklch(0.2 0.03 50)", cursor: "pointer", opacity: !title.trim() ? 0.5 : 1 }}
+              onMouseEnter={(e) => { if (title.trim()) (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.79 0.17 50)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 50)"; }}>
               Find candidates
             </button>
           </div>
@@ -292,8 +292,8 @@ export default function AskPage() {
         {/* ── Loading state ── */}
         {phase === "loading" && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "var(--font-code)", fontSize: "11.5px", letterSpacing: "0.05em", color: "oklch(0.7 0.09 155)", marginBottom: 18 }}>
-              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "oklch(0.74 0.13 155)", animation: "ts-pulse 1.1s ease-in-out infinite" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "var(--font-code)", fontSize: "11.5px", letterSpacing: "0.05em", color: "oklch(0.74 0.12 50)", marginBottom: 18 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "oklch(0.72 0.18 50)", animation: "ts-pulse 1.1s ease-in-out infinite" }} />
               MATCHING AGAINST {ticketsLabel} RESOLVED TICKETS…
             </div>
             {[{ h: "150px" }, { h: "118px" }, { h: "118px" }].map((sk, i) => (

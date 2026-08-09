@@ -14,9 +14,9 @@
 <style>
 html,body{margin:0;padding:0;background:oklch(0.19 0.007 90);}
 *{box-sizing:border-box;}
-a{color:oklch(0.78 0.11 155);text-decoration:none;}
-a:hover{color:oklch(0.86 0.11 155);}
-::selection{background:oklch(0.45 0.09 155);color:#fff;}
+a{color:oklch(0.76 0.16 50);text-decoration:none;}
+a:hover{color:oklch(0.84 0.16 50);}
+::selection{background:oklch(0.5 0.13 50);color:#fff;}
 @keyframes ts-pulse{0%,100%{opacity:.28}50%{opacity:.75}}
 @keyframes ts-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes ts-sweep{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
@@ -27,17 +27,58 @@ a:hover{color:oklch(0.86 0.11 155);}
 
   <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;height:60px;background:oklch(0.19 0.007 90 / 0.92);backdrop-filter:blur(10px);border-bottom:1px solid oklch(0.3 0.008 90);">
     <div style="display:flex;align-items:center;gap:14px;">
-      <div style="width:22px;height:22px;border-radius:3px;border:1.5px solid oklch(0.74 0.13 155);display:grid;place-items:center;">
-        <div style="width:8px;height:8px;background:oklch(0.74 0.13 155);border-radius:1px;"></div>
+      <div style="width:22px;height:22px;border-radius:3px;border:1.5px solid oklch(0.72 0.18 50);display:grid;place-items:center;">
+        <div style="width:8px;height:8px;background:oklch(0.72 0.18 50);border-radius:1px;"></div>
       </div>
       <div style="font-size:14.5px;font-weight:650;letter-spacing:-0.01em;">TaskScope</div>
       <div style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;color:oklch(0.6 0.008 90);letter-spacing:0.04em;padding-left:12px;border-left:1px solid oklch(0.3 0.008 90);">APACHE&nbsp;KAFKA&nbsp;· 2,014&nbsp;RESOLVED</div>
     </div>
-    <nav style="display:flex;align-items:center;gap:4px;">
-      <button onClick="{{ goTeam }}" style="{{ navTeamStyle }}">Team</button>
-      <button onClick="{{ goAsk }}" style="{{ navAskStyle }}">Ask</button>
+    <nav style="display:flex;align-items:center;gap:14px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onClick="{{ goTeam }}" style="{{ navTeamStyle }}">Team</button>
+        <button onClick="{{ goAsk }}" style="{{ navAskStyle }}">Ask</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-left:14px;border-left:1px solid oklch(0.3 0.008 90);">
+        <sc-for list="{{ sources }}" as="s" hint-placeholder-count="2">
+          <div title="{{ s.tip }}" style="display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:20px;border:1px solid {{ s.border }};background:{{ s.bg }};font-family:'Spline Sans Mono',monospace;font-size:10px;letter-spacing:0.05em;color:{{ s.fg }};">
+            <div style="width:6px;height:6px;border-radius:50%;background:{{ s.dot }};"></div>
+            {{ s.label }}
+          </div>
+        </sc-for>
+        <button onClick="{{ manage }}" style="font-family:'Libre Franklin',sans-serif;font-size:12px;font-weight:550;padding:6px 13px;border-radius:5px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.72 0.008 90);cursor:pointer;" style-hover="border-color:oklch(0.55 0.09 50);color:oklch(0.9 0.006 90);">{{ manageLabel }}</button>
+      </div>
     </nav>
   </header>
+
+  <sc-if value="{{ showGithubHint }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1400px;margin:0 auto;padding:11px 32px;border-bottom:1px solid oklch(0.3 0.008 90);">
+      <div style="font-size:12.5px;color:oklch(0.68 0.008 90);">GitHub isn't connected. Ticket history is complete; review and merge activity is missing from every profile.</div>
+      <button onClick="{{ connectGithub }}" style="flex:none;font-family:'Libre Franklin',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:5px;border:1px solid oklch(0.45 0.09 50);background:none;color:oklch(0.82 0.12 50);cursor:pointer;">Connect GitHub</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showConnect }}" hint-placeholder-val="{{ false }}">
+  <main style="max-width:820px;margin:0 auto;padding:72px 32px 90px;">
+    <h1 style="margin:0 0 8px;font-size:30px;font-weight:700;letter-spacing:-0.025em;line-height:1.1;">Connect your sources</h1>
+    <p style="margin:0 0 30px;max-width:58ch;font-size:13.5px;line-height:1.55;color:oklch(0.66 0.008 90);text-wrap:pretty;">TaskScope reads history you already have. Nothing is shown until a source is connected — no estimates, no candidates, no profiles.</p>
+
+    <sc-for list="{{ connectCards }}" as="s" hint-placeholder-count="2">
+      <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:18px;align-items:center;border:1px solid {{ s.cardBorder }};border-radius:6px;background:oklch(0.215 0.007 90);padding:20px 22px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:6px;display:grid;place-items:center;background:oklch(0.26 0.008 90);font-family:'Spline Sans Mono',monospace;font-size:15px;font-weight:600;color:{{ s.dot }};">{{ s.mark }}</div>
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+            <div style="font-size:15.5px;font-weight:650;letter-spacing:-0.015em;">{{ s.name }}</div>
+            <span style="font-family:'Spline Sans Mono',monospace;font-size:9.5px;letter-spacing:0.06em;padding:2.5px 7px;border-radius:3px;background:{{ s.bg }};color:{{ s.fg }};">{{ s.badge }}</span>
+          </div>
+          <div style="font-size:12.5px;line-height:1.5;color:oklch(0.63 0.008 90);text-wrap:pretty;">{{ s.detail }}</div>
+        </div>
+        <button onClick="{{ s.action }}" style="{{ s.btnStyle }}">{{ s.btnLabel }}</button>
+      </div>
+    </sc-for>
+
+    <p style="margin:22px 0 0;font-size:11.5px;line-height:1.6;color:oklch(0.52 0.008 90);max-width:64ch;">Read-only access. TaskScope never writes to a ticket or a repository, and history stays scoped to the projects you select.</p>
+  </main>
+  </sc-if>
 
   <sc-if value="{{ isTeam }}" hint-placeholder-val="{{ true }}">
   <main style="max-width:1400px;margin:0 auto;padding:36px 32px 80px;">
@@ -157,10 +198,10 @@ a:hover{color:oklch(0.86 0.11 155);}
                 <text x="26" y="{{ g.ty }}" text-anchor="end" font-size="10" fill="oklch(0.55 0.008 90)">{{ g.label }}</text>
               </g>
             </sc-for>
-            <path d="{{ person.areaPath }}" fill="oklch(0.74 0.13 155 / 0.12)"></path>
-            <path d="{{ person.linePath }}" fill="none" stroke="oklch(0.74 0.13 155)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></path>
+            <path d="{{ person.areaPath }}" fill="oklch(0.72 0.18 50 / 0.12)"></path>
+            <path d="{{ person.linePath }}" fill="none" stroke="oklch(0.72 0.18 50)" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></path>
             <sc-for list="{{ person.points }}" as="pt" hint-placeholder-count="12">
-              <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="2.75" fill="oklch(0.19 0.007 90)" stroke="oklch(0.74 0.13 155)" stroke-width="1.5"></circle>
+              <circle cx="{{ pt.x }}" cy="{{ pt.y }}" r="2.75" fill="oklch(0.19 0.007 90)" stroke="oklch(0.72 0.18 50)" stroke-width="1.5"></circle>
             </sc-for>
             <sc-for list="{{ person.xTicks }}" as="t" hint-placeholder-count="5">
               <text x="{{ t.x }}" y="164" text-anchor="middle" font-size="10" fill="oklch(0.55 0.008 90)">{{ t.label }}</text>
@@ -175,7 +216,7 @@ a:hover{color:oklch(0.86 0.11 155);}
           </div>
           <sc-for list="{{ person.recentTickets }}" as="t" hint-placeholder-count="6">
             <div style="display:grid;grid-template-columns:96px minmax(0,1fr) 108px 92px 92px;gap:14px;align-items:center;padding:11px 22px;border-top:1px solid oklch(0.26 0.008 90);">
-              <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.78 0.11 155);">{{ t.key }}</a>
+              <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:12px;color:oklch(0.76 0.16 50);">{{ t.key }}</a>
               <div style="font-size:13px;line-height:1.4;color:oklch(0.88 0.006 90);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:pretty;">{{ t.title }}</div>
               <div><span style="font-size:10.5px;padding:2.5px 8px;border-radius:3px;background:{{ t.typeBg }};color:{{ t.typeFg }};white-space:nowrap;">{{ t.type }}</span></div>
               <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:{{ t.daysColor }};">{{ t.days }}</div>
@@ -215,10 +256,10 @@ a:hover{color:oklch(0.86 0.11 155);}
       <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px 0;border-top:1px solid oklch(0.27 0.008 90);">
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-left:4px;">
           <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="2">
-            <button onClick="{{ ex.use }}" style="font-size:11.5px;padding:5px 10px;border-radius:20px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;font-family:'Libre Franklin',sans-serif;" style-hover="border-color:oklch(0.5 0.05 155);color:oklch(0.88 0.006 90);">{{ ex.label }}</button>
+            <button onClick="{{ ex.use }}" style="font-size:11.5px;padding:5px 10px;border-radius:20px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;font-family:'Libre Franklin',sans-serif;" style-hover="border-color:oklch(0.55 0.09 50);color:oklch(0.88 0.006 90);">{{ ex.label }}</button>
           </sc-for>
         </div>
-        <button onClick="{{ submit }}" style="flex:none;font-family:'Libre Franklin',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:5px;border:none;background:oklch(0.74 0.13 155);color:oklch(0.19 0.02 155);cursor:pointer;" style-hover="background:oklch(0.8 0.13 155);">Find candidates</button>
+        <button onClick="{{ submit }}" style="flex:none;font-family:'Libre Franklin',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:5px;border:none;background:oklch(0.72 0.18 50);color:oklch(0.2 0.03 50);cursor:pointer;" style-hover="background:oklch(0.79 0.17 50);">Find candidates</button>
       </div>
     </div>
 
@@ -231,8 +272,8 @@ a:hover{color:oklch(0.86 0.11 155);}
 
     <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
       <div>
-        <div style="display:flex;align-items:center;gap:10px;font-family:'Spline Sans Mono',monospace;font-size:11.5px;letter-spacing:0.05em;color:oklch(0.7 0.09 155);margin-bottom:18px;">
-          <div style="width:7px;height:7px;border-radius:50%;background:oklch(0.74 0.13 155);animation:ts-pulse 1.1s ease-in-out infinite;"></div>
+        <div style="display:flex;align-items:center;gap:10px;font-family:'Spline Sans Mono',monospace;font-size:11.5px;letter-spacing:0.05em;color:oklch(0.74 0.12 50);margin-bottom:18px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:oklch(0.72 0.18 50);animation:ts-pulse 1.1s ease-in-out infinite;"></div>
           MATCHING AGAINST 2,014 RESOLVED TICKETS…
         </div>
         <sc-for list="{{ skeletons }}" as="sk" hint-placeholder-count="3">
@@ -305,18 +346,18 @@ a:hover{color:oklch(0.86 0.11 155);}
                 <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;">
                   <div style="width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Spline Sans Mono',monospace;font-size:11px;font-weight:600;color:oklch(0.2 0.007 90);background:{{ c.tint }};">{{ c.initials }}</div>
                   <div style="min-width:0;">
-                    <div onClick="{{ c.open }}" style="font-size:16px;font-weight:650;letter-spacing:-0.015em;cursor:pointer;" style-hover="color:oklch(0.82 0.11 155);">{{ c.name }}</div>
+                    <div onClick="{{ c.open }}" style="font-size:16px;font-weight:650;letter-spacing:-0.015em;cursor:pointer;" style-hover="color:oklch(0.82 0.16 50);">{{ c.name }}</div>
                     <div style="font-size:11.5px;color:{{ c.bandColor }};margin-top:1px;">{{ c.band }}</div>
                   </div>
                 </div>
                 <p style="margin:0 0 12px;font-size:13.5px;line-height:1.55;color:oklch(0.78 0.006 90);max-width:64ch;text-wrap:pretty;">{{ c.why }}</p>
-                <button onClick="{{ c.toggle }}" style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:0.05em;padding:5px 11px;border-radius:4px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;" style-hover="border-color:oklch(0.5 0.05 155);color:oklch(0.88 0.006 90);">{{ c.evidenceLabel }}</button>
+                <button onClick="{{ c.toggle }}" style="font-family:'Spline Sans Mono',monospace;font-size:10.5px;letter-spacing:0.05em;padding:5px 11px;border-radius:4px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;" style-hover="border-color:oklch(0.55 0.09 50);color:oklch(0.88 0.006 90);">{{ c.evidenceLabel }}</button>
 
                 <sc-if value="{{ c.isOpen }}" hint-placeholder-val="{{ true }}">
-                  <div style="margin-top:12px;border-left:2px solid oklch(0.4 0.06 155);padding-left:16px;">
+                  <div style="margin-top:12px;border-left:2px solid oklch(0.45 0.1 50);padding-left:16px;">
                     <sc-for list="{{ c.evidence }}" as="e" hint-placeholder-count="3">
                       <div style="display:grid;grid-template-columns:96px minmax(0,1fr) 76px 84px;gap:12px;align-items:baseline;padding:7px 0;">
-                        <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.78 0.11 155);">{{ e.key }}</a>
+                        <a href="#" style="font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.76 0.16 50);">{{ e.key }}</a>
                         <div style="font-size:12.5px;line-height:1.45;color:oklch(0.8 0.006 90);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ e.title }}</div>
                         <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:oklch(0.62 0.008 90);">{{ e.days }}</div>
                         <div style="text-align:right;font-family:'Spline Sans Mono',monospace;font-size:11px;color:oklch(0.54 0.008 90);">{{ e.resolved }}</div>
@@ -372,7 +413,7 @@ a:hover{color:oklch(0.86 0.11 155);}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;askState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;idle&quot;,&quot;loading&quot;,&quot;results&quot;,&quot;error&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Ask page&quot;},&quot;evidenceOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ask page&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;jiraConnected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Connections&quot;},&quot;githubConnected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Connections&quot;},&quot;askState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;idle&quot;,&quot;loading&quot;,&quot;results&quot;,&quot;error&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Ask page&quot;},&quot;evidenceOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ask page&quot;}}">
 const TINT = ['oklch(0.78 0.09 155)','oklch(0.79 0.09 60)','oklch(0.76 0.09 30)','oklch(0.77 0.08 250)','oklch(0.78 0.07 320)','oklch(0.8 0.08 120)'];
 const TYPE_C = {
   'Bug': ['oklch(0.32 0.05 30)','oklch(0.82 0.1 30)','oklch(0.68 0.14 30)'],
@@ -454,7 +495,46 @@ function fmtDays(d){ return d>=100 ? Math.round(d)+'d' : d>=10 ? d.toFixed(0)+'d
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 class Component extends DCLogic {
-  state = { route:'team', personId:1, phase:'idle', open:{0:true}, title:'', desc:'' };
+  state = { route:'team', personId:1, phase:'idle', open:{0:true}, title:'', desc:'', jira:true, github:true, showConnect:false };
+
+  toggleSource = (k) => () => this.setState(s=>{
+    const next = { [k]: !s[k] };
+    if (k==='jira' && s.jira) next.showConnect = true;
+    if (k==='jira' && !s.jira) next.showConnect = false;
+    return next;
+  });
+  manage = () => this.setState(s=>({ showConnect: !s.showConnect }));
+
+  sources(){
+    const jira = this.props.jiraConnected ?? this.state.jira;
+    const github = this.props.githubConnected ?? this.state.github;
+    return { jira, github };
+  }
+
+  sourceMeta(key, on){
+    const name = key==='jira' ? 'Jira' : 'GitHub';
+    return {
+      key, name, mark: key==='jira' ? 'JR' : 'GH',
+      label: name.toUpperCase() + (on ? '' : ' · OFF'),
+      tip: on ? name+' connected — read-only' : name+' not connected',
+      dot: on ? 'oklch(0.72 0.18 50)' : 'oklch(0.45 0.008 90)',
+      fg: on ? 'oklch(0.82 0.1 50)' : 'oklch(0.6 0.008 90)',
+      bg: on ? 'oklch(0.26 0.03 50)' : 'oklch(0.24 0.008 90)',
+      border: on ? 'oklch(0.4 0.07 50)' : 'oklch(0.3 0.008 90)',
+      cardBorder: on ? 'oklch(0.38 0.06 50)' : 'oklch(0.3 0.008 90)',
+      badge: on ? 'CONNECTED' : (key==='jira' ? 'REQUIRED' : 'OPTIONAL'),
+      detail: key==='jira'
+        ? (on ? 'APACHE / KAFKA · 2,014 resolved tickets · last synced 14 minutes ago'
+              : 'Ticket history is the source of every profile, estimate and citation. Without it there is nothing to show.')
+        : (on ? '3 repositories · reviews and merges linked to 1,881 tickets · last synced 6 minutes ago'
+              : 'Adds review and merge activity to profiles. Estimates still work without it, with fewer signals.'),
+      btnLabel: on ? 'Disconnect' : 'Connect '+name,
+      action: this.toggleSource(key),
+      btnStyle: on
+        ? "font-family:'Libre Franklin',sans-serif;font-size:12.5px;font-weight:550;padding:8px 16px;border-radius:5px;border:1px solid oklch(0.32 0.008 90);background:none;color:oklch(0.7 0.008 90);cursor:pointer;white-space:nowrap;"
+        : "font-family:'Libre Franklin',sans-serif;font-size:12.5px;font-weight:650;padding:9px 18px;border-radius:5px;border:none;background:oklch(0.72 0.18 50);color:oklch(0.2 0.03 50);cursor:pointer;white-space:nowrap;"
+    };
+  }
 
   go = (r) => () => this.setState({ route:r });
   openPerson = (id) => () => this.setState({ route:'person', personId:id });
@@ -468,7 +548,7 @@ class Component extends DCLogic {
 
   navStyle(active){
     return 'font-family:Libre Franklin,sans-serif;font-size:12.5px;font-weight:550;padding:7px 15px;border-radius:5px;cursor:pointer;border:1px solid '+
-      (active?'oklch(0.42 0.07 155)':'transparent')+';background:'+(active?'oklch(0.27 0.03 155)':'none')+';color:'+(active?'oklch(0.9 0.06 155)':'oklch(0.66 0.008 90)')+';';
+      (active?'oklch(0.46 0.11 50)':'transparent')+';background:'+(active?'oklch(0.29 0.05 50)':'none')+';color:'+(active?'oklch(0.88 0.1 50)':'oklch(0.66 0.008 90)')+';';
   }
 
   buildPerson(){
@@ -516,9 +596,9 @@ class Component extends DCLogic {
     const phase = forced || this.state.phase;
     const R = RESULT;
     const scaleMax = Math.ceil(R.complexity.rangeDays[1]*1.15/5)*5;
-    const cLabelColor = {Low:'oklch(0.76 0.11 155)',Medium:'oklch(0.8 0.1 120)',High:'oklch(0.8 0.11 60)','Very High':'oklch(0.74 0.14 30)'}[R.complexity.label];
+    const cLabelColor = {Low:'oklch(0.74 0.16 50)',Medium:'oklch(0.8 0.1 120)',High:'oklch(0.8 0.11 60)','Very High':'oklch(0.74 0.14 30)'}[R.complexity.label];
     const cands = R.candidates.map((c,i)=>{
-      const band = c.matchScore>=80?['Strong match','oklch(0.78 0.11 155)']: c.matchScore>=65?['Solid match','oklch(0.8 0.09 120)']: c.matchScore>=45?['Possible fit','oklch(0.8 0.09 60)']:['Worth a look','oklch(0.7 0.02 90)'];
+      const band = c.matchScore>=80?['Strong match','oklch(0.76 0.16 50)']: c.matchScore>=65?['Solid match','oklch(0.8 0.09 120)']: c.matchScore>=45?['Possible fit','oklch(0.8 0.09 60)']:['Worth a look','oklch(0.7 0.02 90)'];
       const isOpen = this.props.evidenceOpen === false ? !!this.state.open['x'+i] : (this.state.open[i] !== undefined ? this.state.open[i] : true);
       return { ...c, rank:String(i+1).padStart(2,'0'), initials:initials(c.name), tint:tintOf(c.personId),
         band:band[0], bandColor:band[1], scorePct:c.matchScore+'%',
@@ -530,8 +610,18 @@ class Component extends DCLogic {
         evidence: c.evidence.map(e=>({ ...e, days:fmtDays(e.cycleDays) })) };
     });
 
+    const conn = this.sources();
+    const metas = [this.sourceMeta('jira', conn.jira), this.sourceMeta('github', conn.github)];
+    const gate = !conn.jira || this.state.showConnect;
+
     return {
-      isTeam: this.state.route==='team', isPerson: this.state.route==='person', isAsk: this.state.route==='ask',
+      sources: metas, connectCards: metas,
+      manage: this.manage,
+      manageLabel: !conn.jira ? 'Connect' : (gate ? 'Back to dashboard' : 'Manage'),
+      showConnect: gate,
+      showGithubHint: !gate && conn.jira && !conn.github,
+      connectGithub: this.toggleSource('github'),
+      isTeam: !gate && this.state.route==='team', isPerson: !gate && this.state.route==='person', isAsk: !gate && this.state.route==='ask',
       goTeam: this.go('team'), goAsk: this.go('ask'),
       navTeamStyle: this.navStyle(this.state.route!=='ask'), navAskStyle: this.navStyle(this.state.route==='ask'),
       people,
@@ -558,3 +648,4 @@ class Component extends DCLogic {
 </script>
 </body>
 </html>
+

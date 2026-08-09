@@ -26,10 +26,10 @@ html, body {
 
 * { box-sizing: border-box; }
 
-a { color: oklch(0.78 0.11 155); text-decoration: none; }
-a:hover { color: oklch(0.86 0.11 155); }
+a { color: oklch(0.76 0.16 50); text-decoration: none; }
+a:hover { color: oklch(0.84 0.16 50); }
 
-::selection { background: oklch(0.45 0.09 155); color: #fff; }
+::selection { background: oklch(0.5 0.13 50); color: #fff; }
 
 /* ─── Keyframes ───────────────────────────────────────────────────────────────
    ts-pulse  : loading indicator dot

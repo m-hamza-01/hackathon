@@ -57,7 +57,7 @@ export function pips(n: number): { c: string }[] {
       ? "oklch(0.72 0.13 30)"
       : n >= 4
       ? "oklch(0.76 0.11 60)"
-      : "oklch(0.7 0.09 155)";
+      : "oklch(0.74 0.12 50)";
   const inactive = "oklch(0.28 0.008 90)";
   return Array.from({ length: 8 }, (_, i) => ({ c: i < n ? active : inactive }));
 }
@@ -78,7 +78,7 @@ export function daysColor(cycleDays: number): string {
 
 /** Match-strength band text + colour from a 0–100 score. */
 export function candidateBand(matchScore: number): { label: string; color: string } {
-  if (matchScore >= 80) return { label: "Strong match",  color: "oklch(0.78 0.11 155)" };
+  if (matchScore >= 80) return { label: "Strong match",  color: "oklch(0.76 0.16 50)" };
   if (matchScore >= 65) return { label: "Solid match",   color: "oklch(0.8 0.09 120)"  };
   if (matchScore >= 45) return { label: "Possible fit",  color: "oklch(0.8 0.09 60)"   };
   return              { label: "Worth a look",   color: "oklch(0.7 0.02 90)"   };
@@ -87,7 +87,7 @@ export function candidateBand(matchScore: number): { label: string; color: strin
 /** Complexity label colour. */
 export function complexityColor(label: string): string {
   const m: Record<string, string> = {
-    Low:         "oklch(0.76 0.11 155)",
+    Low:         "oklch(0.74 0.16 50)",
     Medium:      "oklch(0.8 0.1 120)",
     High:        "oklch(0.8 0.11 60)",
     "Very High": "oklch(0.74 0.14 30)",

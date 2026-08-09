@@ -68,10 +68,10 @@ export function Sparkline({ data }: { data: CycleTrendPoint[] }) {
           <text x="26" y={g.ty} textAnchor="end" fontSize="10" fill="oklch(0.55 0.008 90)">{g.label}</text>
         </g>
       ))}
-      <path d={areaPath} fill="oklch(0.74 0.13 155 / 0.12)" />
-      <path d={linePath} fill="none" stroke="oklch(0.74 0.13 155)" strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={areaPath} fill="oklch(0.72 0.18 50 / 0.12)" />
+      <path d={linePath} fill="none" stroke="oklch(0.72 0.18 50)" strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" />
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="2.75" fill="oklch(0.19 0.007 90)" stroke="oklch(0.74 0.13 155)" strokeWidth="1.5" />
+        <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="2.75" fill="oklch(0.19 0.007 90)" stroke="oklch(0.72 0.18 50)" strokeWidth="1.5" />
       ))}
       {xTicks.map((t, i) => (
         <text key={i} x={t.x} y="164" textAnchor="middle" fontSize="10" fill="oklch(0.55 0.008 90)">{t.label}</text>
@@ -207,7 +207,7 @@ export default function PersonPage() {
                     const badge = typeBadge(t.type);
                     return (
                       <div key={t.key} style={{ display: "grid", gridTemplateColumns: "96px minmax(0,1fr) 108px 92px 92px", gap: 14, alignItems: "center", padding: "11px 22px", borderTop: "1px solid oklch(0.26 0.008 90)" }}>
-                        <a href="#" style={{ fontFamily: "var(--font-code)", fontSize: 12, color: "oklch(0.78 0.11 155)" }}>{t.key}</a>
+                        <a href="#" style={{ fontFamily: "var(--font-code)", fontSize: 12, color: "oklch(0.76 0.16 50)" }}>{t.key}</a>
                         <div style={{ fontSize: 13, lineHeight: 1.4, color: "oklch(0.88 0.006 90)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>{t.title}</div>
                         <div>
                           <span style={{ fontSize: "10.5px", padding: "2.5px 8px", borderRadius: 3, background: badge.bg, color: badge.fg, whiteSpace: "nowrap" }}>{t.type}</span>

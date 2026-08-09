@@ -50,9 +50,9 @@ export function GithubPanel() {
   return (
     <div
       style={{
-        border: `1px solid ${connected ? "oklch(0.42 0.07 155)" : "oklch(0.3 0.008 90)"}`,
+        border: `1px solid ${connected ? "oklch(0.38 0.06 50)" : "oklch(0.3 0.008 90)"}`,
         borderRadius: 6,
-        background: connected ? "oklch(0.225 0.02 155)" : "oklch(0.215 0.007 90)",
+        background: "oklch(0.215 0.007 90)",
         padding: "24px 26px",
       }}
     >
@@ -106,7 +106,7 @@ function ConnectedState({
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: "oklch(0.74 0.13 155)",
+            background: "oklch(0.72 0.18 50)",
             flexShrink: 0,
           }}
         />
@@ -115,7 +115,7 @@ function ConnectedState({
             fontSize: 10,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "oklch(0.7 0.09 155)",
+            color: "oklch(0.82 0.1 50)",
           }}
         >
           Connected
@@ -177,7 +177,7 @@ function ConnectedState({
       <div
         style={{
           paddingTop: 18,
-          borderTop: "1px solid oklch(0.32 0.03 155)",
+          borderTop: "1px solid oklch(0.32 0.05 50)",
         }}
       >
         <a
@@ -189,9 +189,9 @@ function ConnectedState({
             fontWeight: 600,
             padding: "8px 18px",
             borderRadius: 5,
-            border: "1px solid oklch(0.42 0.07 155)",
+            border: "1px solid oklch(0.45 0.09 50)",
             background: "none",
-            color: "oklch(0.8 0.09 155)",
+            color: "oklch(0.82 0.12 50)",
             cursor: "pointer",
             textDecoration: "none",
           }}
@@ -309,8 +309,8 @@ function DisconnectedState({
           padding: "10px 24px",
           borderRadius: 5,
           border: "none",
-          background: appConfigured ? "oklch(0.74 0.13 155)" : "oklch(0.3 0.008 90)",
-          color: appConfigured ? "oklch(0.19 0.02 155)" : "oklch(0.5 0.008 90)",
+          background: appConfigured ? "oklch(0.72 0.18 50)" : "oklch(0.3 0.008 90)",
+          color: appConfigured ? "oklch(0.2 0.03 50)" : "oklch(0.5 0.008 90)",
           cursor: appConfigured ? "pointer" : "not-allowed",
           textDecoration: "none",
         }}
