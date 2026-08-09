@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 // config.ts must be imported before db.ts so loadDotenv() runs first,
-// ensuring TASKSCOPE_DATA_DIR (and other env vars) are set before the DB opens.
+// ensuring FOREMAN_DATA_DIR (and other env vars) are set before the DB opens.
 import { config, applyOAuthOverride } from "./config.js";
 import { getOAuthConnection } from "./oauth.js";
 import { RAW_DIR } from "../db.js";

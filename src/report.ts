@@ -16,7 +16,7 @@ function fmt(n: number | null, decimals = 1): string {
 
 function main() {
   console.log("\n═══════════════════════════════════════════════════════");
-  console.log("  TaskScope — Jira Ingest Sanity Report");
+  console.log("  Foreman — Jira Ingest Sanity Report");
   console.log("═══════════════════════════════════════════════════════\n");
 
   // ── Overview ──────────────────────────────────────────────────────────────

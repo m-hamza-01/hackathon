@@ -54,11 +54,11 @@ import path from "path";
 import { buildIndex, search, RawDoc } from "./bm25.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// TASKSCOPE_DB_PATH lets the Next.js web layer override the path at startup
+// FOREMAN_DB_PATH lets the Next.js web layer override the path at startup
 // (next.config.ts sets it before engine.ts is first imported).
 // CLI usage leaves it unset and falls back to the relative-to-source path.
-const DB_PATH   = process.env.TASKSCOPE_DB_PATH
-  ?? path.resolve(__dirname, "../../data/taskscope.db");
+const DB_PATH   = process.env.FOREMAN_DB_PATH
+  ?? path.resolve(__dirname, "../../data/foreman.db");
 
 const db = new Database(DB_PATH, { readonly: true });
 

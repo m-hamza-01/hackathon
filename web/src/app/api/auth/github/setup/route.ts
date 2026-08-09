@@ -48,7 +48,7 @@ function loadDotenv(): void {
 }
 
 function resolveDataDir(): string {
-  if (process.env.TASKSCOPE_DATA_DIR) return process.env.TASKSCOPE_DATA_DIR;
+  if (process.env.FOREMAN_DATA_DIR) return process.env.FOREMAN_DATA_DIR;
   // Next.js cwd() is typically web/; one level up reaches the project root data/.
   const fromWeb = path.join(process.cwd(), "../data");
   try {

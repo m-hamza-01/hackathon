@@ -12,18 +12,18 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-const DB_PATH = path.resolve(process.cwd(), "../data/taskscope.db");
+const DB_PATH = path.resolve(process.cwd(), "../data/foreman.db");
 
 declare global {
   // eslint-disable-next-line no-var
-  var _taskscope_db: Database.Database | undefined;
+  var _foreman_db: Database.Database | undefined;
 }
 
 function openDb(): Database.Database {
-  if (!global._taskscope_db) {
-    global._taskscope_db = new Database(DB_PATH, { readonly: true });
+  if (!global._foreman_db) {
+    global._foreman_db = new Database(DB_PATH, { readonly: true });
   }
-  return global._taskscope_db;
+  return global._foreman_db;
 }
 
 export const db = openDb();

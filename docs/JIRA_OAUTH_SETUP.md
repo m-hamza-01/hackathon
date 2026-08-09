@@ -1,6 +1,6 @@
 # Jira OAuth Setup (Cloud)
 
-This guide walks you through connecting TaskScope to your Jira Cloud instance via
+This guide walks you through connecting Foreman to your Jira Cloud instance via
 OAuth 2.0 (3LO). After setup a one-click "Connect Jira" button at `/connect`
 handles authorisation — no API tokens to hunt for.
 
@@ -14,7 +14,7 @@ handles authorisation — no API tokens to hunt for.
 1. Go to [developer.atlassian.com](https://developer.atlassian.com/console/myapps/)
    and sign in with the Atlassian account that owns the Jira site you want to connect.
 2. Click **Create** and choose **OAuth 2.0 integration**.
-3. Give it a name (e.g. "TaskScope") and accept the developer terms.
+3. Give it a name (e.g. "Foreman") and accept the developer terms.
 
 ---
 
@@ -25,7 +25,7 @@ handles authorisation — no API tokens to hunt for.
 3. Click **Edit scopes** next to it and enable these three classic scopes:
    - `read:jira-work` — read issue and project data
    - `read:jira-user` — read user profiles
-   - `offline_access` — enables the refresh token so TaskScope stays connected
+   - `offline_access` — enables the refresh token so Foreman stays connected
 4. Save.
 
 ---

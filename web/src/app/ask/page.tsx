@@ -233,7 +233,7 @@ export default function AskPage() {
         <div style={{ marginBottom: 26 }}>
           <h1 style={{ margin: "0 0 8px", fontSize: 30, fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.1 }}>Who should pick this up?</h1>
           <p style={{ margin: 0, maxWidth: "62ch", fontSize: "13.5px", lineHeight: 1.55, color: "oklch(0.66 0.008 90)" }}>
-            Describe the task. TaskScope estimates it against similar past work and suggests candidates — with the tickets behind every suggestion. The call is yours.
+            Describe the task. Foreman estimates it against similar past work and suggests candidates — with the tickets behind every suggestion. The call is yours.
           </p>
         </div>
 
@@ -377,7 +377,7 @@ export default function AskPage() {
               )}
 
               <p style={{ margin: "20px 0 0", fontSize: "11.5px", lineHeight: 1.6, color: "oklch(0.52 0.008 90)", maxWidth: "70ch" }}>
-                Estimates are drawn from resolved ticket history and describe past work, not a person's capability. Availability, growth goals, and everything TaskScope can't see are yours to weigh.
+                Estimates are drawn from resolved ticket history and describe past work, not a person's capability. Availability, growth goals, and everything Foreman can't see are yours to weigh.
               </p>
             </section>
           </div>

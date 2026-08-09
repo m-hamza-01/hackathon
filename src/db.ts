@@ -2,11 +2,11 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 
-// TASKSCOPE_DATA_DIR overrides the default "data" dir — used for test isolation
-// so tests never write to the demo DB in data/taskscope.db.
-const DATA_DIR = path.resolve(process.env.TASKSCOPE_DATA_DIR ?? "data");
+// FOREMAN_DATA_DIR overrides the default "data" dir — used for test isolation
+// so tests never write to the demo DB in data/foreman.db.
+const DATA_DIR = path.resolve(process.env.FOREMAN_DATA_DIR ?? "data");
 const RAW_DIR = path.join(DATA_DIR, "raw");
-const DB_PATH = path.join(DATA_DIR, "taskscope.db");
+const DB_PATH = path.join(DATA_DIR, "foreman.db");
 
 // Ensure data directories exist
 fs.mkdirSync(DATA_DIR, { recursive: true });

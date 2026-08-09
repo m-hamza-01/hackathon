@@ -4,14 +4,14 @@ import path from "path";
 import type { GHPage, PRNode } from "./fetch-prs.js";
 
 // ── DB setup ──────────────────────────────────────────────────────────────────
-// Respects TASKSCOPE_DB env var so the test run can target a scratch copy
-// without touching the live data/taskscope.db.
+// Respects FOREMAN_DB env var so the test run can target a scratch copy
+// without touching the live data/foreman.db.
 
 const DATA_DIR = path.resolve("data");
 const GITHUB_RAW_DIR = path.join(DATA_DIR, "raw", "github");
 
 const DB_PATH =
-  process.env.TASKSCOPE_DB ?? path.join(DATA_DIR, "taskscope.db");
+  process.env.FOREMAN_DB ?? path.join(DATA_DIR, "foreman.db");
 
 const db = new Database(DB_PATH);
 db.pragma("journal_mode = WAL");

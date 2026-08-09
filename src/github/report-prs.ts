@@ -2,11 +2,11 @@ import Database from "better-sqlite3";
 import path from "path";
 
 // ── DB setup ──────────────────────────────────────────────────────────────────
-// Reads TASKSCOPE_DB env var so the same report works against the scratch copy.
+// Reads FOREMAN_DB env var so the same report works against the scratch copy.
 
 const DATA_DIR = path.resolve("data");
 const DB_PATH =
-  process.env.TASKSCOPE_DB ?? path.join(DATA_DIR, "taskscope.db");
+  process.env.FOREMAN_DB ?? path.join(DATA_DIR, "foreman.db");
 
 const db = new Database(DB_PATH, { readonly: true });
 
@@ -48,7 +48,7 @@ function main(): void {
   requireTable("pr_tickets");
 
   console.log("\n═══════════════════════════════════════════════════════");
-  console.log("  TaskScope — GitHub PR Integration Report");
+  console.log("  Foreman — GitHub PR Integration Report");
   console.log("═══════════════════════════════════════════════════════\n");
 
   // ── PR overview ─────────────────────────────────────────────────────────────

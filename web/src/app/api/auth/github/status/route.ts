@@ -49,7 +49,7 @@ function loadDotenv(): void {
 }
 
 function resolveDataDir(): string {
-  if (process.env.TASKSCOPE_DATA_DIR) return process.env.TASKSCOPE_DATA_DIR;
+  if (process.env.FOREMAN_DATA_DIR) return process.env.FOREMAN_DATA_DIR;
   return path.join(process.cwd(), "../data");
 }
 

@@ -17,7 +17,7 @@ const splineSansMono = Spline_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TaskScope",
+  title: "Foreman",
   description: "Manager-side work-intelligence dashboard over Jira history.",
 };
 

@@ -57,7 +57,7 @@ function loadDotenv(): void {
 }
 
 function resolveTokenFile(): string {
-  const dataDir = process.env.TASKSCOPE_DATA_DIR ?? path.join(process.cwd(), "data");
+  const dataDir = process.env.FOREMAN_DATA_DIR ?? path.join(process.cwd(), "data");
   return path.join(dataDir, "jira-oauth.json");
 }
 

@@ -56,11 +56,11 @@ function loadDotenv(): void {
 }
 
 // ── Data directory ─────────────────────────────────────────────────────────────
-// TASKSCOPE_DATA_DIR wins; otherwise defaults to <cwd>/data (project root when
+// FOREMAN_DATA_DIR wins; otherwise defaults to <cwd>/data (project root when
 // run as a CLI script).
 
 function resolveDataDir(): string {
-  if (process.env.TASKSCOPE_DATA_DIR) return process.env.TASKSCOPE_DATA_DIR;
+  if (process.env.FOREMAN_DATA_DIR) return process.env.FOREMAN_DATA_DIR;
   return path.join(process.cwd(), "data");
 }
 

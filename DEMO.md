@@ -1,6 +1,6 @@
-# TaskScope — 3-minute demo script
+# Foreman — 3-minute demo script
 
-Positioning line (open with it): **"TaskScope recommends with evidence — the manager decides."**
+Positioning line (open with it): **"Foreman recommends with evidence — the manager decides."**
 
 ## Setup (before the demo)
 

@@ -14,7 +14,7 @@ import { ask, queryEngine, QueryResult } from "./engine.js";
 import { synthesizeAsk, buildValidKeySet, stripInvalidKeys, templateFallback } from "./synthesize.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH   = path.resolve(__dirname, "../../data/taskscope.db");
+const DB_PATH   = path.resolve(__dirname, "../../data/foreman.db");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

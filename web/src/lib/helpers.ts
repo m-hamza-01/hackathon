@@ -1,5 +1,5 @@
 // ─── Design-system helper functions ──────────────────────────────────────────
-// Ported from the approved Claude Design export (TaskScope.dc.html).
+// Ported from the approved Claude Design export (Foreman.dc.html).
 // Used on all three pages; keep in sync with the design file's script block.
 
 // 6-tint avatar background palette

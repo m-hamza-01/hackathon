@@ -22,7 +22,7 @@ const HOW_IT_WORKS = [
   {
     n: "01",
     title: "Approve read access",
-    body: "Atlassian's consent screen asks for read-only access to your Jira issues and user list. TaskScope never writes to your Jira.",
+    body: "Atlassian's consent screen asks for read-only access to your Jira issues and user list. Foreman never writes to your Jira.",
   },
   {
     n: "02",
@@ -32,7 +32,7 @@ const HOW_IT_WORKS = [
   {
     n: "03",
     title: "Estimates and candidates appear",
-    body: "Open the Team view or Ask a question. TaskScope uses your own resolved history to surface who's done this kind of work before.",
+    body: "Open the Team view or Ask a question. Foreman uses your own resolved history to surface who's done this kind of work before.",
   },
 ];
 
@@ -462,8 +462,8 @@ function ConnectInner() {
             }}
           >
             {connected
-              ? "TaskScope is reading your resolved ticket history. Head to the Team view to see estimates and candidates."
-              : "TaskScope uses your resolved Jira tickets to estimate task complexity and suggest who has done this kind of work before."}
+              ? "Foreman is reading your resolved ticket history. Head to the Team view to see estimates and candidates."
+              : "Foreman uses your resolved Jira tickets to estimate task complexity and suggest who has done this kind of work before."}
           </p>
         </div>
 

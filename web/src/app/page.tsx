@@ -32,7 +32,7 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
         <div style={{ width: 22, height: 22, borderRadius: 3, border: "1.5px solid oklch(0.74 0.13 155)", display: "grid", placeItems: "center" }}>
           <div style={{ width: 8, height: 8, background: "oklch(0.74 0.13 155)", borderRadius: 1 }} />
         </div>
-        <div style={{ fontSize: "14.5px", fontWeight: 650, letterSpacing: "-0.01em" }}>TaskScope</div>
+        <div style={{ fontSize: "14.5px", fontWeight: 650, letterSpacing: "-0.01em" }}>Foreman</div>
         <div style={{ fontFamily: "var(--font-code)", fontSize: "10.5px", color: "oklch(0.6 0.008 90)", letterSpacing: "0.04em", paddingLeft: 12, borderLeft: "1px solid oklch(0.3 0.008 90)" }}>
           APACHE&nbsp;KAFKA&nbsp;·&nbsp;{meta ? meta.totalTickets.toLocaleString() : "—"}&nbsp;RESOLVED
         </div>

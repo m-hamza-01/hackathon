@@ -28,10 +28,10 @@ function loadDotenv(): void {
   }
 }
 
-// Resolve the data directory: TASKSCOPE_DATA_DIR override or ../data from web/.
+// Resolve the data directory: FOREMAN_DATA_DIR override or ../data from web/.
 function resolveDataDir(): string {
-  if (process.env.TASKSCOPE_DATA_DIR) {
-    return process.env.TASKSCOPE_DATA_DIR;
+  if (process.env.FOREMAN_DATA_DIR) {
+    return process.env.FOREMAN_DATA_DIR;
   }
   // Next.js server cwd() is typically web/; one level up reaches the project root data/.
   // Also try cwd/data in case running from the project root.
@@ -183,7 +183,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     sites,
   };
 
-  // Persist to data/jira-oauth.json — resolve path via TASKSCOPE_DATA_DIR or default.
+  // Persist to data/jira-oauth.json — resolve path via FOREMAN_DATA_DIR or default.
   const dataDir = resolveDataDir();
   const tokenFile = path.join(dataDir, "jira-oauth.json");
   try {

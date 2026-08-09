@@ -1,6 +1,6 @@
 # GitHub App Setup
 
-TaskScope uses a GitHub App for private repo access. An org admin installs the App once, selects the repos to expose, and TaskScope can then ingest PRs without long-lived personal tokens.
+Foreman uses a GitHub App for private repo access. An org admin installs the App once, selects the repos to expose, and Foreman can then ingest PRs without long-lived personal tokens.
 
 ---
 
@@ -13,11 +13,11 @@ TaskScope uses a GitHub App for private repo access. An org admin installs the A
 
    | Field | Value |
    |---|---|
-   | **GitHub App name** | `TaskScope` (or any name; must be unique on GitHub) |
+   | **GitHub App name** | `Foreman` (or any name; must be unique on GitHub) |
    | **Homepage URL** | `http://localhost:3000` (or your production URL) |
    | **Setup URL** | `http://localhost:3000/api/auth/github/setup` |
    | **Redirect on update** | Check this box so re-installs (adding/removing repos) also call the Setup URL |
-   | **Webhook** | Uncheck **Active** — TaskScope does not use webhooks |
+   | **Webhook** | Uncheck **Active** — Foreman does not use webhooks |
 
 3. Under **Repository permissions**, set:
    - **Metadata**: Read-only (mandatory — GitHub requires it for all Apps)
@@ -46,7 +46,7 @@ After creation you land on the App's settings page:
 3. Move it into the project's `data/` directory:
 
    ```sh
-   mv ~/Downloads/taskscope.*.private-key.pem data/github-app.pem
+   mv ~/Downloads/foreman.*.private-key.pem data/github-app.pem
    ```
 
    The file stays local — never commit it. It is already in `.gitignore` via the `data/` exclusion.
@@ -59,7 +59,7 @@ Open `.env` (copy from `.env.example` if you haven't already) and set:
 
 ```
 GITHUB_APP_ID=12345
-GITHUB_APP_SLUG=taskscope
+GITHUB_APP_SLUG=foreman
 GITHUB_APP_PRIVATE_KEY_PATH=data/github-app.pem
 ```
 
@@ -71,7 +71,7 @@ Restart the Next.js server after editing `.env`.
 
 1. Visit `https://github.com/apps/<your-slug>/installations/new`.
 2. Select the org or user account.
-3. Choose **Only select repositories** and tick the repos TaskScope should access.
+3. Choose **Only select repositories** and tick the repos Foreman should access.
 4. Click **Install**.
 
 GitHub redirects to `http://localhost:3000/api/auth/github/setup?installation_id=<id>`.

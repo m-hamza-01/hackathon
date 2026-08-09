@@ -1,10 +1,10 @@
-# TaskScope — Frontend Technical Specification
+# Foreman — Frontend Technical Specification
 
 Technical spec only. No design direction — layout, color, typography, and visual treatment are the designer's call. This documents what exists, what each page must let the user view/do, and the data contracts the design must bind to.
 
 ## Product context (one paragraph)
 
-TaskScope is a manager-side dashboard over a Jira project's history. It builds per-engineer profiles from resolved tickets and answers, for any new task a manager types in: how complex is it, how long will it take, and which engineers are the best-fit candidates — every claim backed by citations to real past tickets. Core positioning constraint: the product **recommends with evidence; the manager decides**. Nothing in the UI should read as an automated verdict, grade, or performance score.
+Foreman is a manager-side dashboard over a Jira project's history. It builds per-engineer profiles from resolved tickets and answers, for any new task a manager types in: how complex is it, how long will it take, and which engineers are the best-fit candidates — every claim backed by citations to real past tickets. Core positioning constraint: the product **recommends with evidence; the manager decides**. Nothing in the UI should read as an automated verdict, grade, or performance score.
 
 ## Stack / integration constraints
 
