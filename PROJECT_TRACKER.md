@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (LIVE on Railway: Jira connected in prod, gate working, simbaforge.com forwards via Cloudflare; only GitHub PEM var pending)
+> Last updated: 2026-08-09 (LIVE on Railway: Jira connected in prod, gate working, simbaforge.com forwards via Cloudflare; GitHub connected locally, prod PEM var malformed — needs re-paste as base64)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,10 +9,11 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] Railway: add GITHUB_APP_PRIVATE_KEY variable (paste PEM contents via individual-variable dialog) — prod shows appConfigured:false until then; afterwards click Install on prod /connect
+- [ ] Railway: GITHUB_APP_PRIVATE_KEY is set but MALFORMED — prod setup callback fails with reason=jwt_error (key loads, signing throws; likely newlines flattened when pasting raw PEM). Fix: replace the variable's value with the single line in `data/github-app.pem.b64` (verified to decode to the working key), then hit `/api/auth/github/setup?installation_id=152337776` on prod — no reinstall needed, the installation already exists on GitHub
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] GitHub App CONNECTED locally: install (id 152337776, Simba256, all repos, metadata+PR read) existed on GitHub but the Setup URL callback had never completed, so `data/github-app.json` was missing everywhere; verified App ID 4532979 + local PEM against GET /app (200), re-triggered `/api/auth/github/setup?installation_id=152337776` locally → connected, 46 repos. Prod re-trigger fails with reason=jwt_error (Railway key var malformed — see In Progress). "Foreman-gdg-kolachi" on the install page is just the App's registered name (GITHUB_APP_SLUG), not an error — (2026-08-09)
 - [x] Favicon + UI basics: brand-mark icons (icon.svg, multi-size favicon.ico, apple-icon.png — header's orange square mark on #151410), metadata polish (title template, OG tags, theme-color via viewport export), styled root 404 page, Next.js boilerplate SVGs removed from public/; verified via build + served-HTML head + live 404 — (2026-08-09)
 - [x] Post-OAuth localhost redirect fixed (supervisor): jira/callback + github/setup built absolute redirects from req.url, which is the internal address behind Railway's proxy — browser landed on localhost after connecting even though tokens saved fine; new appOrigin() helper honors APP_BASE_URL / x-forwarded-host; verified via simulated proxy headers — (2026-08-09)
 - [x] DEPLOYED AND LIVE: https://hackaton-production-bd42.up.railway.app — build green, volume seeded, Jira OAuth completed IN PROD (callback flip worked), gate verified live; simbaforge.com → www → Railway forward active via Cloudflare Redirect Rule (Vercel git push route didn't deploy — project not git-connected; vercel.json 1b696b7 left in repo, harmless) — (2026-08-09)
