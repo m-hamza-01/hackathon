@@ -45,6 +45,35 @@ either way — the LLM never touches them.
 
 Demo deep-links: `/ask?q=<title>&d=<description>` auto-runs a query on load.
 
+## Connecting your own Jira
+
+Copy `.env.example` to `.env` in the project root and set the variables for your instance.
+
+**Jira Cloud** (`*.atlassian.net`):
+```bash
+JIRA_BASE_URL=https://your-org.atlassian.net
+JIRA_PROJECT=MYPROJECT
+JIRA_EMAIL=you@example.com
+JIRA_API_TOKEN=your-api-token   # generate at id.atlassian.com → Security → API tokens
+```
+
+**Jira Server / Data Center** (self-hosted):
+```bash
+JIRA_BASE_URL=https://jira.your-company.com
+JIRA_PROJECT=MYPROJECT
+JIRA_PAT=your-personal-access-token   # generate in Jira → Profile → Personal Access Tokens
+```
+
+The API type (Cloud vs Server) is auto-detected from the URL (`.atlassian.net` → Cloud). Override with `JIRA_API=cloud` or `JIRA_API=server` if needed.
+
+Set `PSEUDONYMIZE=false` to store real contributor names instead of pseudonyms — safe when ingesting your own team's data.
+
+Switching datasets means removing the old DB and raw pages, then re-running ingest:
+```bash
+rm -rf data/taskscope.db data/raw
+npm run ingest
+```
+
 ## API contract (web ↔ engine)
 
 - `GET /api/team` — roster with per-person stats (resolved count, median cycle days, active WIP, top components, type mix) + `meta {totalTickets, dateRange}` for header aggregates

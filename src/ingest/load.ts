@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+// config.ts must be imported before db.ts so loadDotenv() runs first.
+import { config } from "./config.js";
 import { db, RAW_DIR } from "../db.js";
 import { getPseudonym } from "../pseudonyms.js";
 
@@ -7,12 +9,13 @@ import { getPseudonym } from "../pseudonyms.js";
 
 interface JiraUser {
   name?: string;
+  accountId?: string;   // Cloud only — GDPR removed `name` on *.atlassian.net
   displayName?: string;
 }
 
 interface JiraComment {
   author?: JiraUser;
-  body?: string;
+  body?: unknown;       // Server: string; Cloud: Atlassian Document Format (ADF) object
   created?: string;
 }
 
@@ -30,7 +33,7 @@ interface JiraIssue {
   key: string;
   fields: {
     summary?: string;
-    description?: string;
+    description?: unknown; // Server: string; Cloud: ADF object
     issuetype?: { name?: string };
     status?: { name?: string };
     priority?: { name?: string };
@@ -40,13 +43,40 @@ interface JiraIssue {
     labels?: string[];
     created?: string;
     resolutiondate?: string;
-    comment?: { comments?: JiraComment[] };
+    comment?: {
+      total?: number;       // prefer total over comments.length (Cloud caps inline list)
+      comments?: JiraComment[];
+    };
   };
   changelog?: { histories?: JiraHistory[] };
 }
 
 interface JiraPage {
   issues?: JiraIssue[];
+}
+
+// ── ADF → plain text ──────────────────────────────────────────────────────────
+// Cloud v3 returns description and comment bodies as Atlassian Document Format
+// (ADF) JSON objects. Server v2 returns plain strings. This helper handles both.
+
+function adfToText(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "string") return v || null;
+  if (typeof v !== "object") return null;
+
+  // Recursively collect all .text leaf values from ADF .content trees.
+  const texts: string[] = [];
+  function collect(node: unknown): void {
+    if (!node || typeof node !== "object") return;
+    const n = node as Record<string, unknown>;
+    if (typeof n.text === "string" && n.text) texts.push(n.text);
+    if (Array.isArray(n.content)) {
+      for (const child of n.content) collect(child);
+    }
+  }
+  collect(v);
+  const result = texts.join(" ").trim();
+  return result || null;
 }
 
 // ── Prepared statements ──────────────────────────────────────────────────────
@@ -117,21 +147,28 @@ function daysBetween(a: string, b: string): number {
 }
 
 function ensurePerson(user: JiraUser | undefined | null): number | null {
-  if (!user?.name) return null;
-  const existing = getPersonByUsername.get(user.name);
+  // Cloud users have no `name` (GDPR); key on name ?? accountId.
+  const key = user?.name ?? user?.accountId;
+  if (!key) return null;
+
+  const existing = getPersonByUsername.get(key);
   if (existing) return existing.id;
 
   const { c } = countPeople.get()!;
-  const pseudonym = getPseudonym(c);
+  // When pseudonymize=false (team's own Jira), use the real displayName.
+  // display_name has a UNIQUE constraint — assumes displayNames are unique within the project.
+  const displayName = config.pseudonymize
+    ? getPseudonym(c)
+    : (user?.displayName ?? key);
 
   const row = upsertPerson.get(
-    user.name,
-    user.displayName ?? user.name,
-    pseudonym
+    key,
+    user?.displayName ?? key,
+    displayName
   );
   // row may be undefined if ON CONFLICT updated (shouldn't happen for new inserts, but guard)
   if (row) return row.id;
-  return getPersonByUsername.get(user.name)?.id ?? null;
+  return getPersonByUsername.get(key)?.id ?? null;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -184,7 +221,9 @@ function loadPage(issues: JiraIssue[]) {
     ).length;
 
     const comments: JiraComment[] = f.comment?.comments ?? [];
-    const comment_count = comments.length;
+    // Prefer f.comment.total: Cloud caps the inline comments array at ~5,
+    // while total reflects the true count.
+    const comment_count = f.comment?.total ?? comments.length;
 
     // Ensure people exist
     const assignee_id = ensurePerson(f.assignee);
@@ -201,7 +240,7 @@ function loadPage(issues: JiraIssue[]) {
       ticketId,
       issue.key,
       f.summary ?? null,
-      f.description ?? null,
+      adfToText(f.description),  // normalise ADF (Cloud) or passthrough string (Server)
       f.issuetype?.name ?? null,
       f.status?.name ?? null,
       f.priority?.name ?? null,
@@ -229,7 +268,7 @@ function loadPage(issues: JiraIssue[]) {
       insertComment.run(
         ticketId,
         author_id,
-        c.body ?? "",
+        adfToText(c.body) ?? "",  // normalise ADF (Cloud) or passthrough string (Server)
         c.created ?? ""
       );
     }
@@ -256,8 +295,8 @@ function readPages(prefix: string): JiraIssue[][] {
 }
 
 function main() {
-  // Resolved tickets
-  const resolvedPages = readPages("kafka-page-");
+  // Resolved tickets — file prefix matches slug (kafka → kafka-page-, mock → mock-page-)
+  const resolvedPages = readPages(`${config.slug}-page-`);
   if (resolvedPages.length === 0) {
     console.error("No resolved pages found in", RAW_DIR, "— run `npm run fetch` first.");
     process.exit(1);
@@ -267,7 +306,7 @@ function main() {
 
   // Open/in-progress tickets — same structure, resolutiondate is null so
   // resolved/cycle_days/work_days stay NULL in the DB.
-  const openPages = readPages("kafka-open-page-");
+  const openPages = readPages(`${config.slug}-open-page-`);
   if (openPages.length > 0) {
     const openCount = openPages.reduce((s, p) => s + p.length, 0);
     console.log(`Loading ${openPages.length} open page(s) (${openCount} tickets)…`);
