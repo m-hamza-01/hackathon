@@ -9,7 +9,10 @@
     "load": "tsx src/ingest/load.ts",
     "ingest": "npm run fetch && npm run load",
     "report": "tsx src/report.ts",
-    "ask": "tsx src/engine/ask.ts"
+    "ask": "tsx src/engine/ask.ts",
+    "github:fetch": "tsx src/github/fetch-prs.ts",
+    "github:load": "tsx src/github/load-prs.ts",
+    "github:report": "tsx src/github/report-prs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
