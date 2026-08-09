@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (hard connect gate + GITHUB_APP_PRIVATE_KEY env support committed; Jira OAuth works locally; Railway blocked on push of 3 commits)
+> Last updated: 2026-08-09 (LIVE on Railway: Jira connected in prod, gate working, simbaforge.com forwards via Cloudflare; only GitHub PEM var pending)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,10 +9,11 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] First Railway deploy: blocked on user pushing b7aaa81 + 3db5a57 + 00f8650. Then: volume at /app/data, paste railway.env into Variables → Raw Editor, add GITHUB_APP_PRIVATE_KEY as its own variable (paste PEM), flip Atlassian app Callback URL to https://hackaton-production-bd42.up.railway.app/api/auth/jira/callback, click Connect on the deployed site
-- [ ] simbaforge.com temporary forward to Railway: vercel.json committed in AIBiz/site-v2 (1b696b7) — awaiting user push to deploy
+- [ ] Railway: add GITHUB_APP_PRIVATE_KEY variable (paste PEM contents via individual-variable dialog) — prod shows appConfigured:false until then; afterwards click Install on prod /connect
+- [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] DEPLOYED AND LIVE: https://hackaton-production-bd42.up.railway.app — build green, volume seeded, Jira OAuth completed IN PROD (callback flip worked), gate verified live; simbaforge.com → www → Railway forward active via Cloudflare Redirect Rule (Vercel git push route didn't deploy — project not git-connected; vercel.json 1b696b7 left in repo, harmless) — (2026-08-09)
 - [x] Hard connect gate (agent: connect-gate; Basim's call, overrides earlier always-show-seed decision): /, /ask, /person 307 to /connect until data/jira-oauth.json holds a session; (gated) route group with force-dynamic server layout so data-less Railway builds don't bake the redirect; AppHeader extracted to components/; APIs stay open; verified connected/disconnected + both build conditions — (2026-08-09, 3db5a57)
 - [x] GITHUB_APP_PRIVATE_KEY env-var support (agent: pem-env): raw or base64 PEM via env, file fallback kept; appConfigured checks updated; verified all three key sources live — (2026-08-09, 00f8650)
 - [x] Jira OAuth consent WORKS locally — real data/jira-oauth.json session from this morning; GitHub PEM downloaded by user → data/github-app.pem, stale .env path override cleared — (2026-08-09)
