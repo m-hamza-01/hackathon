@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (updated design applied: orange accent, header pills, connect reskin; Railway blocked on push)
+> Last updated: 2026-08-09 (hard connect gate + GITHUB_APP_PRIVATE_KEY env support committed; Jira OAuth works locally; Railway blocked on push of 3 commits)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,10 +9,14 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] User testing the live connect flows: Jira OAuth blocked on an Atlassian account with a Jira site (Access denied at consent — creating a free site or switching accounts); GitHub App `foreman-gdg-kolachi` registered, waiting on PEM → data/github-app.pem
-- [ ] First Railway deploy: FAILING until local commits are pushed — origin lacks the start-script fix (a6bba92). After push: volume at /app/data + paste railway.env (local, gitignored) into Variables → Raw Editor, then edit JIRA_OAUTH_REDIRECT_URI to the Railway domain
+- [ ] First Railway deploy: blocked on user pushing b7aaa81 + 3db5a57 + 00f8650. Then: volume at /app/data, paste railway.env into Variables → Raw Editor, add GITHUB_APP_PRIVATE_KEY as its own variable (paste PEM), flip Atlassian app Callback URL to https://hackaton-production-bd42.up.railway.app/api/auth/jira/callback, click Connect on the deployed site
+- [ ] simbaforge.com temporary forward to Railway: vercel.json committed in AIBiz/site-v2 (1b696b7) — awaiting user push to deploy
 
 ## Recently Completed
+- [x] Hard connect gate (agent: connect-gate; Basim's call, overrides earlier always-show-seed decision): /, /ask, /person 307 to /connect until data/jira-oauth.json holds a session; (gated) route group with force-dynamic server layout so data-less Railway builds don't bake the redirect; AppHeader extracted to components/; APIs stay open; verified connected/disconnected + both build conditions — (2026-08-09, 3db5a57)
+- [x] GITHUB_APP_PRIVATE_KEY env-var support (agent: pem-env): raw or base64 PEM via env, file fallback kept; appConfigured checks updated; verified all three key sources live — (2026-08-09, 00f8650)
+- [x] Jira OAuth consent WORKS locally — real data/jira-oauth.json session from this morning; GitHub PEM downloaded by user → data/github-app.pem, stale .env path override cleared — (2026-08-09)
+- [x] railway.env finalized: real Railway domain in redirect URI, GitHub App ID/slug active, PEM-via-UI note — (2026-08-09)
 - [x] Updated design applied (agent: design-update, stopped mid-run; supervisor finished): green→orange accent everywhere (avatar tints/type badges intentionally kept), header Jira/GitHub status pills + Manage button on live status endpoints, /connect reskinned to "Connect your sources" cards, GitHub hint banner; design gate deliberately NOT implemented (seed data always shows); build + served-HTML verified — (2026-08-09, d957676)
 - [x] railway.env created in project root (gitignored) with real ANTHROPIC_API_KEY + Jira OAuth creds, placeholder redirect URI — (2026-08-09)
 - [x] Railway deploy config (agent: railway-deploy): root build/start scripts, seed/foreman.db (12 MB) + scripts/ensure-db.mjs first-boot copy that respects volume mounts, README deploy section; verified via root build + live PORT test — (2026-08-09, a6bba92)
@@ -55,6 +59,8 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - (2026-08-09) PR data (prs, pr_tickets) loaded into the live DB — additive tables only, original tables untouched, pre-load backup at scratchpad taskscope-pre-github.db.bak; nothing reads them until the user approves the surfacing proposal
 - (2026-08-09) App renamed TaskScope → Foreman (Basim's call); folder name and scratchpad backup filenames unchanged
 - (2026-08-09) Railway over Vercel for production — connect flows persist rotating OAuth tokens on disk and serverless filesystems would drop them; volume at /app/data + committed seed DB (seed/foreman.db) copied on first boot
+- (2026-08-09) Hard connect gate per Basim — dashboard hidden until Jira connects (reverses the earlier demo-safety choice to always show seed data); risk accepted knowing local OAuth now works
+- (2026-08-09) simbaforge.com temporarily 307-forwards to the Railway domain (vercel.json in AIBiz/site-v2) — app's canonical domain stays hackaton-production-bd42.up.railway.app so OAuth callbacks never change; marketing site dark meanwhile
 
 ## Notes
 - Deploy: any Node host (better-sqlite3 is native — plain VM/container fine, serverless needs rework). `cd web && npm run build && npm start`.
