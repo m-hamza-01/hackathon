@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (renamed to Foreman; Railway deploy config landed; user wiring up live Jira + GitHub apps)
+> Last updated: 2026-08-09 (updated design applied: orange accent, header pills, connect reskin; Railway blocked on push)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -10,9 +10,11 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 
 ## In Progress
 - [ ] User testing the live connect flows: Jira OAuth blocked on an Atlassian account with a Jira site (Access denied at consent — creating a free site or switching accounts); GitHub App `foreman-gdg-kolachi` registered, waiting on PEM → data/github-app.pem
-- [ ] First Railway deploy: config committed (a6bba92), needs push + volume at /app/data + env vars on Railway
+- [ ] First Railway deploy: FAILING until local commits are pushed — origin lacks the start-script fix (a6bba92). After push: volume at /app/data + paste railway.env (local, gitignored) into Variables → Raw Editor, then edit JIRA_OAUTH_REDIRECT_URI to the Railway domain
 
 ## Recently Completed
+- [x] Updated design applied (agent: design-update, stopped mid-run; supervisor finished): green→orange accent everywhere (avatar tints/type badges intentionally kept), header Jira/GitHub status pills + Manage button on live status endpoints, /connect reskinned to "Connect your sources" cards, GitHub hint banner; design gate deliberately NOT implemented (seed data always shows); build + served-HTML verified — (2026-08-09, d957676)
+- [x] railway.env created in project root (gitignored) with real ANTHROPIC_API_KEY + Jira OAuth creds, placeholder redirect URI — (2026-08-09)
 - [x] Railway deploy config (agent: railway-deploy): root build/start scripts, seed/foreman.db (12 MB) + scripts/ensure-db.mjs first-boot copy that respects volume mounts, README deploy section; verified via root build + live PORT test — (2026-08-09, a6bba92)
 - [x] Rename TaskScope → Foreman everywhere (agent: rename-foreman): UI, docs, package names, TASKSCOPE_* → FOREMAN_* env vars, data/foreman.db; grep-zero verified, server restarted on new build — (2026-08-09, 3932fa1)
 - [x] Repo pushed to github.com/m-hamza-01/hackaton (user pushed; classifier blocks supervisor pushes) — (2026-08-09, e455306)
