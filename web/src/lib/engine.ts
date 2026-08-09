@@ -120,18 +120,25 @@ function recencyDecay(resolvedISO: string | null, nowMs: number): number {
   return Math.exp(-DECAY_LAMBDA * msAgo);
 }
 
-// ── Corpus-wide effort baseline (computed once at module load) ────────────────
+// ── Corpus-wide effort baseline (computed once, on first query) ───────────────
+// Lazy so importing this module never opens the DB — `next build` evaluates
+// route modules before the deploy's start script has seeded data/.
 
-const _corpusMedianEffort: number = (() => {
-  const rows = db.prepare(`
-    SELECT work_days, cycle_days, type FROM tickets WHERE resolved IS NOT NULL
-  `).all() as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
-  const efforts = rows
-    .map(r => effortProxy(r))
-    .filter((v): v is number => v !== null)
-    .sort((a, b) => a - b);
-  return efforts.length > 0 ? percentile(efforts, 50) : 15;
-})();
+let _corpusMedianEffortCache: number | null = null;
+
+function corpusMedianEffort(): number {
+  if (_corpusMedianEffortCache === null) {
+    const rows = db.prepare(`
+      SELECT work_days, cycle_days, type FROM tickets WHERE resolved IS NOT NULL
+    `).all() as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
+    const efforts = rows
+      .map(r => effortProxy(r))
+      .filter((v): v is number => v !== null)
+      .sort((a, b) => a - b);
+    _corpusMedianEffortCache = efforts.length > 0 ? percentile(efforts, 50) : 15;
+  }
+  return _corpusMedianEffortCache;
+}
 
 // ── Component-signal detection ────────────────────────────────────────────────
 
@@ -337,7 +344,7 @@ export function ask(params: {
       : personGlobalMedian(assigneeId);
 
     const speedFactor = personMedian > 0
-      ? Math.max(0.5, Math.min(2.0, _corpusMedianEffort / personMedian))
+      ? Math.max(0.5, Math.min(2.0, corpusMedianEffort() / personMedian))
       : 1.0;
 
     const wipPenalty = 1 / (1 + 0.15 * wip);

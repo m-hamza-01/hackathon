@@ -26,4 +26,13 @@ function openDb(): Database.Database {
   return global._foreman_db;
 }
 
-export const db = openDb();
+// Lazy proxy: the file is only opened on first query, not at import. Next.js
+// evaluates route modules during `next build` ("collecting page data"), and on
+// fresh deploys data/ does not exist until the start script seeds it.
+export const db: Database.Database = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    const real = openDb();
+    const value = real[prop as keyof Database.Database];
+    return typeof value === "function" ? (value as CallableFunction).bind(real) : value;
+  },
+});
