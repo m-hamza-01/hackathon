@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "cd web && npm install && npm run build",
+    "start": "node scripts/ensure-db.mjs && cd web && npm start",
     "fetch": "tsx src/ingest/fetch.ts",
     "fetch:open": "tsx src/ingest/fetch.ts --open",
     "load": "tsx src/ingest/load.ts",

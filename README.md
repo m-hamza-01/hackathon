@@ -74,6 +74,30 @@ rm -rf data/foreman.db data/raw
 npm run ingest
 ```
 
+## Deploy on Railway
+
+1. **Connect the repo** — create a new Railway project and connect this GitHub repo.
+
+2. **Add a volume** — in Railway's service settings, add a volume mounted at `/app/data`. This is where `data/foreman.db` lives at runtime. On first boot the service copies `seed/foreman.db` there automatically; the volume persists the DB across redeploys.
+
+3. **Set environment variables:**
+
+   | Variable | Required | Notes |
+   |---|---|---|
+   | `JIRA_OAUTH_CLIENT_ID` | Yes | From your Atlassian OAuth app |
+   | `JIRA_OAUTH_CLIENT_SECRET` | Yes | From your Atlassian OAuth app |
+   | `JIRA_OAUTH_REDIRECT_URI` | Yes | `https://<your-railway-domain>/api/auth/jira/callback` |
+   | `ANTHROPIC_API_KEY` | Optional | Enables Claude prose for `/api/ask`; without it the endpoint returns deterministic template prose |
+   | `GITHUB_APP_ID` | Optional | Enables GitHub PR integration |
+   | `GITHUB_APP_SLUG` | Optional | Your GitHub App's slug |
+   | `GITHUB_APP_PRIVATE_KEY_PATH` | Optional | Absolute path to the PEM inside the container |
+
+4. **Atlassian OAuth callback URL** — the Atlassian OAuth app allows a single callback URL per app. For a production demo either update the existing app's callback URL to the Railway domain, or register a second Atlassian OAuth app pointing to Railway and set its credentials in the env vars above.
+
+5. **GitHub App install URL** — same consideration applies if you use the GitHub integration: the GitHub App's install/setup URL needs to point to your Railway domain, or register a separate GitHub App for the production deployment.
+
+Railway injects a `PORT` env var at runtime; `next start` reads it automatically (default 0.0.0.0, so no hostname configuration is needed).
+
 ## API contract (web ↔ engine)
 
 - `GET /api/team` — roster with per-person stats (resolved count, median cycle days, active WIP, top components, type mix) + `meta {totalTickets, dateRange}` for header aggregates
