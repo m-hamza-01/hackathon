@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { AppHeader } from "@/app/page";
+import { AppHeader } from "@/components/AppHeader";
 
 interface JiraStatus {
   connected: boolean;

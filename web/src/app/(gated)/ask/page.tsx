@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AskResponse, Complexity, Candidate, EvidenceTicket, TeamMeta } from "@/lib/types";
 import { initials, tintOf, pips, fmtDays, complexityColor, candidateBand } from "@/lib/helpers";
-import { AppHeader } from "@/app/page";
+import { AppHeader } from "@/components/AppHeader";
 
 // Example tasks shown as chips in the input card
 const EXAMPLES = [

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { isJiraConnected } from "@/lib/jira-connection";
 
 interface JiraOAuthConnection {
   cloudId: string;
@@ -21,16 +22,14 @@ function resolveDataDir(): string {
 }
 
 export async function GET(): Promise<NextResponse> {
-  const tokenFile = path.join(resolveDataDir(), "jira-oauth.json");
+  if (!isJiraConnected()) {
+    return NextResponse.json({ connected: false });
+  }
 
+  const tokenFile = path.join(resolveDataDir(), "jira-oauth.json");
   try {
     const raw = fs.readFileSync(tokenFile, "utf8");
     const conn = JSON.parse(raw) as Partial<JiraOAuthConnection>;
-
-    if (!conn.accessToken || !conn.expiresAt) {
-      return NextResponse.json({ connected: false });
-    }
-
     return NextResponse.json({
       connected: true,
       siteName: conn.siteName,
@@ -38,7 +37,6 @@ export async function GET(): Promise<NextResponse> {
       expiresAt: conn.expiresAt,
     });
   } catch {
-    // File missing or unreadable — not connected.
     return NextResponse.json({ connected: false });
   }
 }

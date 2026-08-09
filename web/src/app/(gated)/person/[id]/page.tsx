@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { PersonDetailResponse, CycleTrendPoint, TeamMeta } from "@/lib/types";
 import { initials, tintOf, fmtDays, daysColor, typeBadge } from "@/lib/helpers";
-import { AppHeader } from "@/app/page";
+import { AppHeader } from "@/components/AppHeader";
 
 // ─── Sparkline ─────────────────────────────────────────────────────────────────
 // Inline SVG trend chart matching the approved design spec.
