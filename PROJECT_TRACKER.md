@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-09 (FULLY LIVE on Railway: Jira + GitHub both connected in prod, gate + demo mode working, simbaforge.com forwards via Cloudflare)
+> Last updated: 2026-08-20 (FULLY LIVE on Railway: Jira + GitHub both connected in prod, gate + demo mode working, simbaforge.com forwards via Cloudflare)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -12,6 +12,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] Old project name fully scrubbed: design canvas renamed to design/Foreman.dc.html (content updated), tracker history rephrased, project folder renamed to `foreman` — grep for the old name is zero across the repo — (2026-08-20)
 - [x] GitHub App CONNECTED IN PROD: Basim replaced the Railway GITHUB_APP_PRIVATE_KEY with the base64 line (probe flipped jwt_error → installation_not_found, proving signing), supervisor re-triggered setup with installation 152337776 → github=ok, connected:true, Simba256, 46 repos. Both sources now live in prod. Privacy page also live at /privacy — (2026-08-09)
 - [x] Demo mode (agent: demo-mode; supervisor verified + added stale-cookie flash guard): "Explore with sample data" button on /connect sets a 30-day foreman_demo cookie that passes the hard gate without Jira; SAMPLE DATA header chip + "Exit demo" affordance; real connections take precedence everywhere; verified via curl matrix on simulated pre-connect prod (seed DB, no oauth file) — judges can now browse without connecting — (2026-08-09, cc888e4)
 - [x] Ask-page ghost suggestion (supervisor, inline): replaced the two example chips with one translucent placeholder task (same as DEMO.md deep-link — "Streams state store corruption after rebalance"), Tab fills both fields, hint chip disappears once typing starts; deliberate ::placeholder color in globals.css — (2026-08-09, 894ffce)
@@ -27,7 +28,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [x] Updated design applied (agent: design-update, stopped mid-run; supervisor finished): green→orange accent everywhere (avatar tints/type badges intentionally kept), header Jira/GitHub status pills + Manage button on live status endpoints, /connect reskinned to "Connect your sources" cards, GitHub hint banner; design gate deliberately NOT implemented (seed data always shows); build + served-HTML verified — (2026-08-09, d957676)
 - [x] railway.env created in project root (gitignored) with real ANTHROPIC_API_KEY + Jira OAuth creds, placeholder redirect URI — (2026-08-09)
 - [x] Railway deploy config (agent: railway-deploy): root build/start scripts, seed/foreman.db (12 MB) + scripts/ensure-db.mjs first-boot copy that respects volume mounts, README deploy section; verified via root build + live PORT test — (2026-08-09, a6bba92)
-- [x] Rename TaskScope → Foreman everywhere (agent: rename-foreman): UI, docs, package names, TASKSCOPE_* → FOREMAN_* env vars, data/foreman.db; grep-zero verified, server restarted on new build — (2026-08-09, 3932fa1)
+- [x] Rename app to Foreman everywhere (agent: rename-foreman): UI, docs, package names, env vars renamed to FOREMAN_*, data/foreman.db; grep-zero verified, server restarted on new build — (2026-08-09, 3932fa1)
 - [x] Repo pushed to github.com/m-hamza-01/hackaton (user pushed; classifier blocks supervisor pushes) — (2026-08-09, e455306)
 - [x] Supervisor integration wiring: OAuth session preferred over env auth in ingest, GitHub App token feeds `gh` via GH_TOKEN, GithubPanel mounted on /connect; prod smoke + screenshot verified — (2026-08-09, 3d3346f)
 - [x] GitHub App "Connect" flow (agent: github-app-connect): RS256 app JWT via node:crypto, install-once Setup URL callback with spoofing guard, no tokens on disk; supervisor fixed relative-redirect crash (NextResponse.redirect needs absolute URLs) — (2026-08-09, fb240ea)
@@ -63,8 +64,8 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - (2026-08-09) Winsorized+clamped ETA formula kept over anchored redo — differentiated per-person bands beat uniform ones (redo preserved at scratchpad eta-anchored-redo.patch)
 - (2026-08-09) Connect-style auth is the primary path everywhere (Atlassian OAuth 3LO, install-once GitHub App); .env API tokens are developer fallback only — Basim's standing UX preference
 - (2026-08-09) GitHub App chosen over OAuth App: fine-grained read-only repo grants, survives org OAuth restrictions, short-lived installation tokens never stored on disk
-- (2026-08-09) PR data (prs, pr_tickets) loaded into the live DB — additive tables only, original tables untouched, pre-load backup at scratchpad taskscope-pre-github.db.bak; nothing reads them until the user approves the surfacing proposal
-- (2026-08-09) App renamed TaskScope → Foreman (Basim's call); folder name and scratchpad backup filenames unchanged
+- (2026-08-09) PR data (prs, pr_tickets) loaded into the live DB — additive tables only, original tables untouched, pre-load backup was kept in that session's scratchpad (since expired); nothing reads them until the user approves the surfacing proposal
+- (2026-08-09) App renamed to Foreman from its original working title (Basim's call); project folder followed on 2026-08-20 (`personalProjects/foreman`)
 - (2026-08-09) Railway over Vercel for production — connect flows persist rotating OAuth tokens on disk and serverless filesystems would drop them; volume at /app/data + committed seed DB (seed/foreman.db) copied on first boot
 - (2026-08-09) Hard connect gate per Basim — dashboard hidden until Jira connects (reverses the earlier demo-safety choice to always show seed data); risk accepted knowing local OAuth now works
 - (2026-08-09) simbaforge.com temporarily 307-forwards to the Railway domain (vercel.json in AIBiz/site-v2) — app's canonical domain stays hackaton-production-bd42.up.railway.app so OAuth callbacks never change; marketing site dark meanwhile
