@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-23 (research + business/compliance documented; GTM decided: design-partner program after Stage 0 non-negotiables; backtest harness is next)
+> Last updated: 2026-08-23 (research + business/compliance documented; positioning = calibrated org model, GTM = consultant-led entry with company leave-behind; Stage 0 non-negotiables unchanged, backtest harness is next)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -52,8 +52,9 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [ ] Security floor: authenticate API routes, encrypt tokens at rest, per-customer isolation (one container per design partner), disconnect/revoke/delete flow, basic audit log
 - [ ] Legal floor: DPA, /privacy update (Anthropic no-training wording + our commitment), LIA + DPIA templates, generic employee-notice template
 - [ ] Product-ethics floor: engineers see own profile, no speed leaderboards, real manager-override UX
-**Stage 1 — design partners (~month 2–4):** recruit 3–5 US/UK ICP teams, per-customer deploys, hand-run calibration interviews, outcome feedback; optional OSS-project showcase
-**Stage 2+:** self-serve trial with certificate, Marketplace listings, pricing, SOC 2 start, calibration UI; then enterprise (Cloud Fortified, multi-tenancy/self-hosted, EU readiness)
+**Stage 1 — diagnostics (~month 2–4, BUSINESS_AND_COMPLIANCE.md §10):** run 2–3 Engineering Org Diagnostics ourselves on real orgs (backtest output as findings: reassignment rate + latency cost, estimation error, ownership concentration, senior load); hand-run calibration interviews; 10 discovery interviews (§8 script) in parallel
+**Stage 2 — consultant channel:** put the finished diagnostic in front of tech-DD firms and fractional CTOs; multi-client workspace, exportable/white-label report, client connect-link consent flow, per-engagement purge; per-engagement / practitioner-licence pricing; leave-behind subscription; SOC 2 start
+**Stage 3:** enterprise (Cloud Fortified, multi-tenancy/self-hosted, EU readiness)
 - [ ] Decide with user: PR-metrics surfacing (prMetrics on /api/person, complexity corroboration in /ask, PR badges on evidence tickets) — proposal in docs/GITHUB_INTEGRATION.md; data already loaded
 - [ ] User: drop ANTHROPIC_API_KEY into project-root `.env` to enable live Claude synthesis (template fallback active until then)
 - [ ] Optional: rehearse DEMO.md flow once on the demo machine
@@ -69,7 +70,10 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - None
 
 ## Key Decisions
-- (2026-08-23) GTM: design-partner program (3–5 US/UK ICP teams, free/nominal ~3 months) instead of a launch; one container per customer defers multi-tenancy; calibration interview run by hand first; backtest certificate is the pitch; SOC 2 / Marketplace / EU deferred until PMF signal — full plan in BUSINESS_AND_COMPLIANCE.md §7
+- (2026-08-23) GTM: consultant-led entry, company-retained tool — sell to technical due-diligence firms, fractional CTOs, and engineering-effectiveness boutiques as the instrument behind their diagnostics (they take responsibility, we supply calibrated evidence); Foreman stays as the leave-behind for daily routing + continuous calibration; supersedes the free design-partner programme — BUSINESS_AND_COMPLIANCE.md §10
+- (2026-08-23) Positioning: "who takes this ticket" is a feature, not a premium product — the headline is a calibrated model of the engineering org (commitment forecasts, hiring signal, key-person risk, senior-load); per-ticket loop is the wedge and calibration source; price per decision/org, never per seat; premium only with proof on their own data — §9
+- (2026-08-23) ICP (daily user): triage owner in a 20–150-engineer Jira Software org with a shared heterogeneous queue; anti-ICP: <15 engineers, pull-based teams, Linear-native startups, ITSM; Jira's native assignment is a recency list, Linear Triage Intelligence is the forming competitor, nobody does per-person calibrated duration forecasts — §8
+- (2026-08-23) GTM (superseded same day): design-partner program (3–5 US/UK ICP teams, free/nominal ~3 months) instead of a launch; one container per customer defers multi-tenancy; calibration interview run by hand first; backtest certificate is the pitch; SOC 2 / Marketplace / EU deferred until PMF signal — full plan in BUSINESS_AND_COMPLIANCE.md §7
 - (2026-08-23) Algorithm direction: not one paradigm — retrieval + graph *features* + fitted weights for ranking, conformally calibrated statistics for ETAs, combinatorial optimization (Hungarian) for batch assignment; game theory rejected for the core (Goodhart/metric-gaming kept as a product rule: no individual speed leaderboards); GNNs deferred until ~10× data
 - (2026-08-23) "Works everywhere" = self-calibrating per-tenant procedure with a per-tenant backtest certificate, not a global model — literature shows cross-project models don't transfer; nothing absolute, corpus-relative everything
 - (2026-08-23) LLM stays off the numbers; may adjudicate only within backtest-measured statistical ties, with validated justifications and memoized verdicts; must earn its place in the backtest

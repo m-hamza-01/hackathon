@@ -312,3 +312,173 @@ adjudication, batch sprint assignment, multi-tenancy, Marketplace listings.
 | 3 | enterprise | Cloud Fortified, multi-tenancy or self-hosted tier, EU readiness (AI Act by 2027-12-02, ISO 42001). |
 
 **First move: the backtest harness.**
+
+---
+
+## 8. Ideal customer: evidence and economics (2026-08-23)
+
+### What teams do today
+
+- **Jira's default assignee dropdown is a recency list** — the last five
+  people assigned to plus the reporter (Atlassian docs). "Balanced workload"
+  automation = raw open-issue count, no skill weighting. Component default
+  assignee = one static person who becomes the bottleneck. AI assignee
+  suggestions exist only in Jira Service Management Premium (~$51/agent/mo),
+  black-box. **Jira Software dev teams get nothing.**
+- **Linear Triage Intelligence (2025, Business tier, $16/user)** — LLM
+  reasoning over the backlog with a "thinking trace"; no duration estimate,
+  no citations to past tickets, not in Jira. The category is forming.
+- ServiceNow Predictive Intelligence routes ITSM tickets at ~85% accuracy —
+  to *groups*, not people, unexplained. ITSM is solved; dev engineering is not.
+- Triage meetings run 2–3×/week; 18–28% of engineering time goes to triage
+  and issue management; sprint planning ≥4 engineer-hours/sprint/team (67%
+  call it their least productive meeting). The real workflow is a Slack
+  message: "who knows the X subsystem?"
+- Estimation: story points / planning poker; 52% report estimates off by
+  >25%; mean overrun 44%. **No tool produces a per-person, per-ticket-type
+  duration forecast with evidence.** Sharpest unmet need; applies to every
+  team, including pull-based ones where "who takes it" does not.
+
+### The pain is measured
+
+37–44% of bugs reassigned at least once (Mozilla/Eclipse); reassignment
+causes a ~10× increase in triage time (Microsoft Research); Mozilla BugBug
+cut median developer response ~7 → 2 days; Ericsson routed bugs resolve 21%
+faster. Counter-evidence: pull-based teams have no assignment pain; below
+~15 engineers the EM knows everyone.
+
+### ICP (daily user)
+
+The triage owner in a 20–150-engineer org on Jira Software with a shared
+inbound queue and heterogeneous ticket types: platform/infra EM, "bug czar"
+/ triage-duty engineer, head of support engineering. Qualifying test: **does
+the person assigning know less than the data does?** Anti-ICP: <15
+engineers, pull-based Kanban, Linear-native startups, ITSM/helpdesk.
+
+### ROI model (40 engineers, ~300 queue tickets/mo, $100/hr loaded)
+
+| Cost today | ≈ hrs/month |
+|---|---|
+| Triage meetings (45 min × 6 people × 2.5/wk) | 45 |
+| Dispatcher / triage-duty (~5 min/ticket) | 25 |
+| Misrouted tickets (37% × 300 ≈ 110 × ~45 min wasted each) | 80 (+ days of latency each) |
+| Sprint estimation (4 teams × 2 sprints × 4 h) | 32 |
+| **Total** | **~180 h ≈ $18k/month** |
+
+Conservative impact (reassignments −30–40%, triage-meeting time −30%):
+~45–60 h ≈ $5–6k/month saved. Break-even at seat pricing is ~8
+engineer-hours/month across the org. **ROI is not the risk; salience and
+behaviour change are** — validated only by talking to customers.
+
+### Discovery script (Mom-Test style)
+
+"Walk me through the last ticket that landed with the wrong person — how did
+you find out, how long did it take?" · "Who assigns, and how many hours a
+week does that take?" · "What happened the last time someone asked how long
+something would take?" Qualify on: triage meetings exist; queue serves 20+
+engineers; Jira Software; heterogeneous tickets.
+
+**Diagnostic hook:** the first thing a prospect sees is *their own*
+reassignment rate, its latency cost, estimation error, and ownership
+concentration, computed from their own Jira/GitHub — no claims about us.
+
+---
+
+## 9. Positioning: from ticket feature to calibrated org model
+
+**"Who should take this ticket" is a feature, not a premium product.** The
+pain is real but diffuse (dozens of small decisions/week, none sinks a
+quarter) and the market has priced it (Linear, $16 tier). The same data and
+engine answer decisions that cost real money when wrong:
+
+| Decision | Owner | Cost of being wrong | Foreman's answer |
+|---|---|---|---|
+| Can we commit to X by Q4 with this team? | VP Eng / CTO | Lost deals, churn, credibility | Calibrated per-person forecasts rolled up: "85% by date X", with receipts |
+| Hire a specialist, or is it a WIP problem? | CTO | Mis-hire $100k+; missed hire = stalled roadmap | Expertise concentration, component latency, senior load |
+| If Alice leaves, what breaks? | CTO | Product stalls for months | Ownership concentration → key-person risk map |
+| Why are our best engineers always the bottleneck? | VP Eng | Burnout, attrition of irreplaceable people | Load distribution; capacity-constrained batch assignment |
+| I just inherited this org — who knows what? | New VP Eng (trigger event) | Months of guessing | The profiles, instantly |
+
+**The per-ticket loop is the wedge and the calibration loop, not the
+headline.** Every resolved ticket is free, unbiased feedback that keeps the
+org model calibrated. The product: *a calibrated model of your engineering
+organisation's expertise, capacity, and risk.*
+
+**Premium pricing discipline** (most expensive in the market, still a
+no-brainer) holds only when all four are true: senior buyer who owns a
+number; price anchored to a decision, not a seat (flat annual platform fee
+sized to the org; "one avoided mis-hire / kept commitment / retained key
+engineer pays for it several times over"); proof on their own data (the
+calibration certificate); human attention in the package (white-glove
+calibration, quarterly org review).
+
+**Reliability at high stakes:** not an oracle — a rigorous analyst with
+receipts. Calibration, abstention, and confidence become *more* central.
+"We don't have enough history to say" is what earns the trust.
+
+Trigger events to sell into: missed major commitment, key engineer quit,
+hiring-budget review, new VP Eng, board asking why engineering is slow.
+
+---
+
+## 10. Go-to-market decision: consultant-led entry, company-retained tool (2026-08-23)
+
+**Decision.** Do not compete with trusted human advisors for the CTO's
+decision; arm them. Enterprise decisions are bought from people who take
+responsibility. Foreman's "recommends with evidence, a human decides" DNA
+makes the consultant the human. Supersedes the free design-partner
+programme in §7 (Stage 0 non-negotiables unchanged).
+
+**Why it works.** Every engagement on an engineering org starts with a
+diagnostic — interviews, spreadsheets, a Jira export, 2–3 weeks of senior
+time, inconsistent. A calibrated, evidence-cited diagnostic in hours
+multiplies their most expensive input. Against a $50k–$1M engagement a
+$5–20k tool fee is invisible (premium pricing, no-brainer). Consultants
+bring **data access** (signed engagement, client trust) and **leverage**
+(one firm = many orgs; one fractional CTO = a new org every year).
+
+**Who, specifically** (not the big firms — they build their own tooling and
+guard engagement economics):
+
+1. **Technical due-diligence firms** (VC/PE pre-acquisition). 2–3-week
+   assessments from repos and trackers, $30–100k per DD, output is a report,
+   and their questions are our outputs: bus factor / key-person risk,
+   estimation reliability, delivery predictability, expertise concentration,
+   senior-engineer bottlenecks. **Sharpest beachhead.**
+2. **Fractional CTOs / VP-Eng-as-a-service.** Day one at every client is
+   "I just inherited this org" — our trigger event, recurring in one person.
+3. **Engineering-effectiveness boutiques and flow/Kanban coaches.** Already
+   sell probabilistic forecasting; wary of per-person metrics — lead with
+   initiative forecasting and team views for them.
+
+**Two-sided model.** Consultant brings Foreman in for the diagnostic and
+backs recommendations with the client's own evidence; at engagement end
+Foreman stays as the **leave-behind** (daily routing + continuous
+calibration — nobody hires a consultant for that). Referral fee aligns the
+consultant. Entry through the trusted human; retention through the daily
+loop.
+
+**Product implications.**
+- Multi-client workspace with per-engagement lifecycle: connect → analyse →
+  report → purge (deletion at engagement end is a feature).
+- The diagnostic report is the core artifact: exportable, white-labelable,
+  slide-ready. Consultants present; they don't demo.
+- Consent flow: "send your client a connect link" — client authorises, the
+  consultant never touches credentials. Consultant = processor, Foreman =
+  sub-processor; one DPA template covers the chain.
+- Less manager-facing UI polish, more rigour in the numbers.
+
+**Pricing.** Per engagement ($3–10k) or annual practitioner licence with
+unlimited engagements, plus a client-paid leave-behind subscription.
+
+**Risks.** Billable-hour disincentive (target fixed-fee / value-priced
+practitioners; avoid T&M shops); smaller direct market (the leave-behind
+reaches the larger one — not optional); customisation pull (calibrated
+numbers are fixed, narrative layer flexes); channel dependence and episodic
+usage (mitigated by leave-behind and by running diagnostics ourselves).
+
+**Revised Stage 1.** Run the first 2–3 diagnostics ourselves on real orgs
+(learn what the report must contain; produce the proof), then put the
+finished artifact in front of DD firms and fractional CTOs and ask "would
+you pay to run this on every engagement?" The backtest harness remains the
+first brick — it is the diagnostic's engine.
