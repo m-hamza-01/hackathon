@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-23 (research + business/compliance documented; positioning = calibrated org model, GTM = consultant-led entry with company leave-behind; Stage 0 non-negotiables unchanged, backtest harness is next)
+> Last updated: 2026-08-23 (research + business/compliance documented; positioning = calibrated org model, GTM = consultant-led entry with company leave-behind, "instrument the LLM queries" stance vs. general AI tools; Stage 0 non-negotiables unchanged, backtest harness is next)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -12,6 +12,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] Positioning vs. general AI tools → docs/BUSINESS_AND_COMPLIANCE.md §10.2: honest premise (Claude Code can reproduce much of the diagnostic ad hoc), six structural differences (reproducibility, correctness, calibration, plumbing, continuity, benchmarks), perception/acceptance gaps (client committee, security team, engineers, AI Act), moat = validated method + accumulated data + accumulated trust, MCP-server-as-distribution play — (2026-08-23)
 - [x] Business & compliance analysis → docs/BUSINESS_AND_COMPLIANCE.md: ICP/pricing/platform risk, honest flaws, security gap table vs. today (unauthenticated APIs, plain-file tokens), verified regulatory map (EU AI Act high-risk — Annex III 4(b), deadline moved to 2027-12-02 by Reg. 2026/1744; GDPR DPA/LIA/DPIA; BetrVG works-council veto; UK DUA Act; Illinois/California/Colorado), standards roadmap (SOC 2 → ISO 27001/Cloud Fortified → ISO 42001), data-pooling resolution — (2026-08-23)
 - [x] Algorithm reliability research → docs/ALGORITHM_RESEARCH.md: 4-angle literature sweep (ML triage, duration estimation, graph methods, game theory + market), diagnosis of why ETAs are vague (p75/p25 = 18.6×, cycle≠effort, pooled metrics, n<3 samples, no calibration), target architecture (retrieval + graph features + fitted weights → conformally calibrated ETAs → guardrailed LLM adjudication), generalization principles + Kafka-overfit table, onboarding calibration interview design — (2026-08-23)
 - [x] Old project name fully scrubbed: design canvas renamed to design/Foreman.dc.html (content updated), tracker history rephrased, project folder renamed to `foreman` — grep for the old name is zero across the repo — (2026-08-20)
@@ -53,7 +54,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [ ] Legal floor: DPA, /privacy update (Anthropic no-training wording + our commitment), LIA + DPIA templates, generic employee-notice template
 - [ ] Product-ethics floor: engineers see own profile, no speed leaderboards, real manager-override UX
 **Stage 1 — diagnostics (~month 2–4, BUSINESS_AND_COMPLIANCE.md §10):** run 2–3 Engineering Org Diagnostics ourselves on real orgs (backtest output as findings: reassignment rate + latency cost, estimation error, ownership concentration, senior load); hand-run calibration interviews; 10 discovery interviews (§8 script) in parallel
-**Stage 2 — consultant channel:** put the finished diagnostic in front of tech-DD firms and fractional CTOs; multi-client workspace, exportable/white-label report, client connect-link consent flow, per-engagement purge; per-engagement / practitioner-licence pricing; leave-behind subscription; SOC 2 start
+**Stage 2 — consultant channel:** put the finished diagnostic in front of tech-DD firms and fractional CTOs; multi-client workspace, exportable/white-label report, client connect-link consent flow, per-engagement purge; per-engagement / practitioner-licence pricing; leave-behind subscription; SOC 2 start; MCP server exposing the calibrated ledger + metrics (§10.2) so consultants run Claude Code / Cursor on top of Foreman rather than instead of it
 **Stage 3:** enterprise (Cloud Fortified, multi-tenancy/self-hosted, EU readiness)
 - [ ] Decide with user: PR-metrics surfacing (prMetrics on /api/person, complexity corroboration in /ask, PR badges on evidence tickets) — proposal in docs/GITHUB_INTEGRATION.md; data already loaded
 - [ ] User: drop ANTHROPIC_API_KEY into project-root `.env` to enable live Claude synthesis (template fallback active until then)
@@ -70,6 +71,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - None
 
 ## Key Decisions
+- (2026-08-23) Versus general AI tools: do not compete on analysis (Claude Code can reproduce much of the diagnostic ad hoc) — compete on what compounds and cannot be re-derived per engagement: validated method (calibration certificates), accumulated data (opt-in benchmarks), accumulated trust (DPA/SOC 2/conformity/name). Posture: "Foreman is the instrument, Claude is the analyst's assistant" — ship an MCP server so general AI tools become distribution — §10.2
 - (2026-08-23) GTM: consultant-led entry, company-retained tool — sell to technical due-diligence firms, fractional CTOs, and engineering-effectiveness boutiques as the instrument behind their diagnostics (they take responsibility, we supply calibrated evidence); Foreman stays as the leave-behind for daily routing + continuous calibration; supersedes the free design-partner programme — BUSINESS_AND_COMPLIANCE.md §10
 - (2026-08-23) Positioning: "who takes this ticket" is a feature, not a premium product — the headline is a calibrated model of the engineering org (commitment forecasts, hiring signal, key-person risk, senior-load); per-ticket loop is the wedge and calibration source; price per decision/org, never per seat; premium only with proof on their own data — §9
 - (2026-08-23) ICP (daily user): triage owner in a 20–150-engineer Jira Software org with a shared heterogeneous queue; anti-ICP: <15 engineers, pull-based teams, Linear-native startups, ITSM; Jira's native assignment is a recency list, Linear Triage Intelligence is the forming competitor, nobody does per-person calibrated duration forecasts — §8

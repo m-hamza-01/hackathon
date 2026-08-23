@@ -518,3 +518,65 @@ Rules:
 Precedent: Looker/dbt (semantic layer over a governed model), Bloomberg
 (standard data plus user functions) — trusted because the core cannot be
 bent, with open edges for everything else.
+
+### 10.2 Why not just an LLM? Positioning versus Claude Code and general AI tools
+
+Honest premise: **a skilled technical consultant with Claude Code can
+reproduce a good chunk of the diagnostic in a day or two.** Plan for that;
+do not pretend otherwise. For one-off exploratory questions, bespoke
+analyses outside our metrics, technical tinkerers and T&M shops, a general
+AI tool is better and we do not compete for that use.
+
+What a general tool cannot produce, and what the buyer actually pays for:
+
+| | Claude Code / general AI | Foreman |
+|---|---|---|
+| **Reproducibility** | Different script, definitions and numbers every run. Not comparable next quarter, not comparable across targets. | Same data + same calibration profile → same number, named definition, tickets cited. Comparable quarter-over-quarter and target-over-target. |
+| **Correctness of numbers** | Excellent at writing analysis code, unreliable at being right about it: leakage, wrong labels (first assignee vs. final resolver), bad joins. Every metric must be re-verified or the consultant presents a wrong one. | Deterministic, tested code. The LLM writes prose only and is citation-validated. The research (final-resolver labels, log-space, abstention, no post-triage leakage) is encoded once, not re-derived per engagement. |
+| **Calibration** | "How long will this take?" → plausible number, no coverage guarantee. A proper backtest is weeks of ML work per engagement; nobody does it. | Conformal intervals with a measured certificate on the client's own history. The hardest thing to replicate ad hoc. |
+| **Data plumbing** | OAuth, Cloud vs. Server, changelog reconstruction, PR↔ticket linking, entity resolution across Jira and GitHub, pseudonymization: days of fragile scripting per client, credentials on a laptop. | Connect link; normalized, entity-resolved ledger every time. |
+| **Continuity** | A snapshot. | Stays connected as the leave-behind; recommendations monitored; calibration keeps updating. A script cannot become a subscription. |
+| **Benchmarks** | Impossible: every engagement is bespoke. | Opt-in aggregates across engagements ("senior-load concentration is top-decile of orgs assessed"). Compounds with every client. |
+
+Perception and acceptance — where the gap is larger than the technical one:
+
+- **Client-side (CFO, PE investment committee).** "We ran the Foreman
+  diagnostic; definitions attached; every number cites the tickets" reads as
+  methodology. "I fed your Jira into an AI" reads as liability. Tech-DD firms
+  already cite standardized instruments (code-scan vendors) precisely because
+  committees want the same method applied to every target. A named
+  instrument is part of the consultant's pitch; a bespoke script is not.
+- **Client security team.** "Where does our data go?" — "my laptop and an
+  LLM API" is a bad answer; "a sub-processor under DPA, encrypted, no
+  training on your data, purged at engagement end" is a good one. This is an
+  objection the consultant cannot clear alone.
+- **Engineers being profiled.** Published definitions, own profile visible,
+  no leaderboards, no training on their data. Unavailable from an ad hoc
+  analysis — and team acceptance is what lets the recommendations survive.
+- **Regulatory.** A consultant profiling a client's employees through a
+  general LLM is inside the EU AI Act high-risk box (Annex III 4(b)) and
+  rarely knows it. A product that carries the conformity burden takes it
+  off them; the value of this grows every year toward Dec 2027.
+
+**The moat, precisely.** Foundation models will keep getting better at
+analysis, so the moat cannot be "we compute metrics." It is the three things
+that compound and cannot be re-derived per engagement:
+
+1. **Validated method** — calibration certificates, the encoded research.
+2. **Accumulated data** — cross-engagement benchmarks (opt-in, aggregate).
+3. **Accumulated trust** — DPA, SOC 2, conformity, a name a committee
+   recognizes.
+
+A script produces none of these on its second run either. Risk to watch: if
+the diagnostic ever *is* just "metrics a smart person computes in a day,"
+general AI erodes it. Defense is investment in the three compounding layers,
+not in more dashboards.
+
+**Posture: be what the LLM queries, not what it replaces.** "Foreman is the
+instrument; Claude is the analyst's assistant." Tier C already exposes the
+clean ledger via SQL/export; go further and ship an **MCP server** exposing
+the calibrated ledger and metrics so Claude Code, Claude, Cursor, etc. query
+Foreman directly. Consultants do bespoke exploration on top of our
+entity-resolved, calibrated data instead of a raw export; the general AI
+tool becomes distribution rather than a threat; and every bespoke question
+asked through it is a signal for what belongs in Tier B.
