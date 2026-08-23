@@ -482,3 +482,39 @@ usage (mitigated by leave-behind and by running diagnostics ourselves).
 finished artifact in front of DD firms and fractional CTOs and ask "would
 you pay to run this on every engagement?" The backtest harness remains the
 first brick — it is the diagnostic's engine.
+
+### 10.1 Customization policy: opinionated core, configurable definitions, open ledger
+
+Customization pull is smaller than it looks: consultants' metrics are mostly
+different *aggregations of the same facts* (one event ledger: ticket
+created / assigned / transitioned / resolved, PR opened / reviewed / merged,
+comments), and the frameworks have converged (DORA four keys, SPACE, flow
+metrics — cycle time / throughput / WIP / work-item age — DevEx). "All
+different" is mostly the same five things with different start/stop rules.
+
+| Tier | What | Customizable? | Why |
+|---|---|---|---|
+| **A — the moat** | Normalized event ledger, entity resolution (one person across Jira + GitHub), expertise graph, calibrated forecasts, backtest certificate, key-person risk | **No** | Validity depends on the method; a conformal guarantee that can be tweaked is not a guarantee. This rigidity is the product — the part consultants cannot compute themselves. |
+| **B — definitions** | What counts as started/done, statuses and ticket types in scope, working calendar, cohorts, thresholds, standard framework packs (DORA, flow, SPACE) with published definitions | **Yes, via the calibration profile** | These are the calibration-interview parameters. Every choice is explicit, named, and printed in the report. |
+| **C — escape hatches** | SQL/API read access to the per-engagement ledger, CSV/DuckDB export, custom metric definitions, white-label report and narrative templates | **Fully open** | Most consultants want the clean data in a notebook or Excel. SQLite makes read access nearly free and removes most of the pull. |
+
+"You calculate it differently" becomes a documented parameter, not a
+dispute: the report states *"cycle time measured from first In-Progress
+transition to resolution, working days, per engagement configuration"*;
+flip it if you want it from assignment. Consultants gain defensibility —
+"definitions per Foreman standard, configured as follows, tickets cited" —
+that a spreadsheet never gives them.
+
+Rules:
+1. **Don't build the metric layer up front.** Stage 1 = fixed diagnostic +
+   calibration profile + raw export. When the third consultant asks for the
+   same metric, it becomes a Tier B option. The channel decides what is
+   standard.
+2. **Hold the line on Tier A.** Narrative, layout, branding, definitions
+   flex freely; the calibrated numbers and their method never. The moment a
+   forecast can be adjusted to a consultant's view, the certificate — and
+   the product — is worthless.
+
+Precedent: Looker/dbt (semantic layer over a governed model), Bloomberg
+(standard data plus user functions) — trusted because the core cannot be
+bent, with open edges for everything else.
