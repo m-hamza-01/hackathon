@@ -241,3 +241,74 @@ data governance; and competitively it is a game Atlassian wins by default.
 4. Start SOC 2 scoping when the first paying conversation is real.
 5. Design logging, human-override UX, and technical documentation to AI Act
    Arts. 12–14 from the first rewrite — cheap now, expensive later.
+
+---
+
+## 7. Go-to-market plan (decided 2026-08-23)
+
+### Where we stand
+
+A convincing demo, not a sellable product. Real: live Jira + GitHub
+connections, the explainability invariant (LLM never touches numbers,
+citations validated), a working deploy, and a positioning nobody else
+occupies. Not real: the numbers are uncalibrated; the engine breaks on any
+non-Kafka project (citation regex, component regexes, literal status names);
+security is hackathon-grade (unauthenticated APIs, plain-file tokens, single
+tenant). The gap to a credible pilot is weeks, because the architecture is
+fundamentally right.
+
+### Strategy: design partners, not a launch
+
+Run a **design-partner program: 3–5 US/UK teams matching the ICP** (shared
+inbound queue, 15–150 engineers, ≥1,000 tickets), free or nominal for ~3
+months, in exchange for feedback, a testimonial, and permission to publish
+aggregate calibration results.
+
+- **One container per customer.** Tenancy is already one SQLite file per
+  team; a Railway service per partner sidesteps multi-tenancy, gives real
+  isolation, and is the same artifact a later self-hosted tier ships. Build
+  multi-tenancy only when there are more customers than can be deployed by
+  hand.
+- **Run the calibration interview by hand** (30 minutes with each manager)
+  before building UI for it — customer discovery and calibration in one.
+- **The backtest certificate is the pitch:** "Connect your Jira; here's how
+  often we'd have matched *your* history."
+- **Showcase wedge:** large OSS projects with public Jira/GitHub (the demo
+  corpus is Apache Kafka). Zero privacy friction, publishable proof, lead
+  generation — not revenue.
+
+### Non-negotiables before any real customer data
+
+1. **Backtest harness + calibrated numbers** — final-resolver labels,
+   `work_days` log-space target, sample-size tiers with abstention, conformal
+   bands. The core claim is unsubstantiated without it; it is also the trial
+   mechanic.
+2. **Generalization sweep** — `ALGORITHM_RESEARCH.md` §4 table. The first
+   non-Kafka tenant otherwise gets garbage or broken citations.
+3. **Security floor** — authenticated API routes, tokens encrypted at rest,
+   per-customer isolation (per-container for now), disconnect/revoke/delete
+   flow, basic audit log.
+4. **Legal floor** — DPA; `/privacy` updated (Anthropic no-training wording,
+   our own no-training commitment); LIA + DPIA templates handed to customers;
+   generic employee-notice template (Illinois requires it now).
+5. **Product-ethics floor (= GDPR Art. 22 compliance)** — engineers see their
+   own profile; no speed leaderboards anywhere; manager override is a real,
+   easy decision, never a rubber stamp.
+
+### Explicitly not required for pilots
+
+SOC 2 (start scoping when the first paid contract is in sight — 9–15 month
+clock), Cloud Fortified, ISO 27001/42001, EU AI Act conformity (design for
+it, don't build for it yet), EU customers, calibration-interview UI, LLM
+adjudication, batch sprint assignment, multi-tenancy, Marketplace listings.
+
+### Sequence
+
+| Stage | Timing | Content |
+|---|---|---|
+| 0 | now → ~4–6 weeks | The five non-negotiables. Engineering order: backtest harness → engine reliability → generalization → security floor. Legal templates in parallel. |
+| 1 | ~month 2–4 | Design partners: per-customer deploys, hand-run calibration interviews, outcome feedback accruing. Measure: do managers act on recommendations; does the certificate hold on their data. |
+| 2 | after PMF signal | Self-serve trial with certificate; Atlassian Cloud Security Participant + GitHub listings; per-manager-seat pricing; SOC 2 started; calibration UI built from interview learnings. |
+| 3 | enterprise | Cloud Fortified, multi-tenancy or self-hosted tier, EU readiness (AI Act by 2027-12-02, ISO 42001). |
+
+**First move: the backtest harness.**

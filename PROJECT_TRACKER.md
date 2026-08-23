@@ -1,12 +1,12 @@
 # Project Tracker
 
-> Last updated: 2026-08-23 (algorithm reliability research + business/compliance analysis documented; engine rewrite roadmap set, backtest harness is next)
+> Last updated: 2026-08-23 (research + business/compliance documented; GTM decided: design-partner program after Stage 0 non-negotiables; backtest harness is next)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
 
 ## Current Status
-**Status**: Active — demo-ready. Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
+**Status**: Active — demo-ready; entering Stage 0 (pre-pilot non-negotiables, see BUSINESS_AND_COMPLIANCE.md §7). Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
@@ -43,12 +43,17 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [x] Dashboard on real SQLite (task #5): /api/team, /api/person, /api/ask on ported engine; verified via prod build + screenshots — (2026-08-09)
 
 ## Upcoming / Planned
+**Stage 0 — non-negotiables before any real customer data (target ~4–6 weeks):**
 - [ ] Backtest harness (ALGORITHM_RESEARCH.md §5.1) — time-travel eval over resolved tickets: top-1/top-3 hit rate vs. final resolver, interval coverage at 50/80/95%, log-MAE, abstention rate. Prerequisite for every engine change — next up
 - [ ] Engine reliability pass (§5.2–5.4, §7 roadmap): final-resolver labels, work_days-only log-space target, similarity floor, sample-size tiers + abstention, conformal calibration, survival-style ETA display + calibration table
 - [ ] Generalization sweep (§4 table): replace Kafka component regexes, absolute complexity thresholds, KAFKA-key citation regex, literal status names (→ statusCategory), hand-tuned constants
 - [ ] Tossing-graph + PR-ownership features; fit score weights against backtest (subsumes the PR-metrics surfacing decision below)
 - [ ] Onboarding calibration interview + per-tenant calibration profile (§6)
-- [ ] Business-side immediate actions (BUSINESS_AND_COMPLIANCE.md §6): authenticate API routes, encrypt tokens at rest, DPA/LIA/DPIA templates, Anthropic wording on /privacy
+- [ ] Security floor: authenticate API routes, encrypt tokens at rest, per-customer isolation (one container per design partner), disconnect/revoke/delete flow, basic audit log
+- [ ] Legal floor: DPA, /privacy update (Anthropic no-training wording + our commitment), LIA + DPIA templates, generic employee-notice template
+- [ ] Product-ethics floor: engineers see own profile, no speed leaderboards, real manager-override UX
+**Stage 1 — design partners (~month 2–4):** recruit 3–5 US/UK ICP teams, per-customer deploys, hand-run calibration interviews, outcome feedback; optional OSS-project showcase
+**Stage 2+:** self-serve trial with certificate, Marketplace listings, pricing, SOC 2 start, calibration UI; then enterprise (Cloud Fortified, multi-tenancy/self-hosted, EU readiness)
 - [ ] Decide with user: PR-metrics surfacing (prMetrics on /api/person, complexity corroboration in /ask, PR badges on evidence tickets) — proposal in docs/GITHUB_INTEGRATION.md; data already loaded
 - [ ] User: drop ANTHROPIC_API_KEY into project-root `.env` to enable live Claude synthesis (template fallback active until then)
 - [ ] Optional: rehearse DEMO.md flow once on the demo machine
@@ -64,6 +69,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - None
 
 ## Key Decisions
+- (2026-08-23) GTM: design-partner program (3–5 US/UK ICP teams, free/nominal ~3 months) instead of a launch; one container per customer defers multi-tenancy; calibration interview run by hand first; backtest certificate is the pitch; SOC 2 / Marketplace / EU deferred until PMF signal — full plan in BUSINESS_AND_COMPLIANCE.md §7
 - (2026-08-23) Algorithm direction: not one paradigm — retrieval + graph *features* + fitted weights for ranking, conformally calibrated statistics for ETAs, combinatorial optimization (Hungarian) for batch assignment; game theory rejected for the core (Goodhart/metric-gaming kept as a product rule: no individual speed leaderboards); GNNs deferred until ~10× data
 - (2026-08-23) "Works everywhere" = self-calibrating per-tenant procedure with a per-tenant backtest certificate, not a global model — literature shows cross-project models don't transfer; nothing absolute, corpus-relative everything
 - (2026-08-23) LLM stays off the numbers; may adjudicate only within backtest-measured statistical ties, with validated justifications and memoized verdicts; must earn its place in the backtest
