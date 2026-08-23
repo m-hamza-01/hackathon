@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-20 (FULLY LIVE on Railway: Jira + GitHub both connected in prod, gate + demo mode working, simbaforge.com forwards via Cloudflare)
+> Last updated: 2026-08-23 (algorithm reliability research + business/compliance analysis documented; engine rewrite roadmap set, backtest harness is next)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -12,6 +12,8 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] Business & compliance analysis → docs/BUSINESS_AND_COMPLIANCE.md: ICP/pricing/platform risk, honest flaws, security gap table vs. today (unauthenticated APIs, plain-file tokens), verified regulatory map (EU AI Act high-risk — Annex III 4(b), deadline moved to 2027-12-02 by Reg. 2026/1744; GDPR DPA/LIA/DPIA; BetrVG works-council veto; UK DUA Act; Illinois/California/Colorado), standards roadmap (SOC 2 → ISO 27001/Cloud Fortified → ISO 42001), data-pooling resolution — (2026-08-23)
+- [x] Algorithm reliability research → docs/ALGORITHM_RESEARCH.md: 4-angle literature sweep (ML triage, duration estimation, graph methods, game theory + market), diagnosis of why ETAs are vague (p75/p25 = 18.6×, cycle≠effort, pooled metrics, n<3 samples, no calibration), target architecture (retrieval + graph features + fitted weights → conformally calibrated ETAs → guardrailed LLM adjudication), generalization principles + Kafka-overfit table, onboarding calibration interview design — (2026-08-23)
 - [x] Old project name fully scrubbed: design canvas renamed to design/Foreman.dc.html (content updated), tracker history rephrased, project folder renamed to `foreman` — grep for the old name is zero across the repo — (2026-08-20)
 - [x] GitHub App CONNECTED IN PROD: Basim replaced the Railway GITHUB_APP_PRIVATE_KEY with the base64 line (probe flipped jwt_error → installation_not_found, proving signing), supervisor re-triggered setup with installation 152337776 → github=ok, connected:true, Simba256, 46 repos. Both sources now live in prod. Privacy page also live at /privacy — (2026-08-09)
 - [x] Demo mode (agent: demo-mode; supervisor verified + added stale-cookie flash guard): "Explore with sample data" button on /connect sets a 30-day foreman_demo cookie that passes the hard gate without Jira; SAMPLE DATA header chip + "Exit demo" affordance; real connections take precedence everywhere; verified via curl matrix on simulated pre-connect prod (seed DB, no oauth file) — judges can now browse without connecting — (2026-08-09, cc888e4)
@@ -41,6 +43,12 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - [x] Dashboard on real SQLite (task #5): /api/team, /api/person, /api/ask on ported engine; verified via prod build + screenshots — (2026-08-09)
 
 ## Upcoming / Planned
+- [ ] Backtest harness (ALGORITHM_RESEARCH.md §5.1) — time-travel eval over resolved tickets: top-1/top-3 hit rate vs. final resolver, interval coverage at 50/80/95%, log-MAE, abstention rate. Prerequisite for every engine change — next up
+- [ ] Engine reliability pass (§5.2–5.4, §7 roadmap): final-resolver labels, work_days-only log-space target, similarity floor, sample-size tiers + abstention, conformal calibration, survival-style ETA display + calibration table
+- [ ] Generalization sweep (§4 table): replace Kafka component regexes, absolute complexity thresholds, KAFKA-key citation regex, literal status names (→ statusCategory), hand-tuned constants
+- [ ] Tossing-graph + PR-ownership features; fit score weights against backtest (subsumes the PR-metrics surfacing decision below)
+- [ ] Onboarding calibration interview + per-tenant calibration profile (§6)
+- [ ] Business-side immediate actions (BUSINESS_AND_COMPLIANCE.md §6): authenticate API routes, encrypt tokens at rest, DPA/LIA/DPIA templates, Anthropic wording on /privacy
 - [ ] Decide with user: PR-metrics surfacing (prMetrics on /api/person, complexity corroboration in /ask, PR badges on evidence tickets) — proposal in docs/GITHUB_INTEGRATION.md; data already loaded
 - [ ] User: drop ANTHROPIC_API_KEY into project-root `.env` to enable live Claude synthesis (template fallback active until then)
 - [ ] Optional: rehearse DEMO.md flow once on the demo machine
@@ -56,6 +64,12 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - None
 
 ## Key Decisions
+- (2026-08-23) Algorithm direction: not one paradigm — retrieval + graph *features* + fitted weights for ranking, conformally calibrated statistics for ETAs, combinatorial optimization (Hungarian) for batch assignment; game theory rejected for the core (Goodhart/metric-gaming kept as a product rule: no individual speed leaderboards); GNNs deferred until ~10× data
+- (2026-08-23) "Works everywhere" = self-calibrating per-tenant procedure with a per-tenant backtest certificate, not a global model — literature shows cross-project models don't transfer; nothing absolute, corpus-relative everything
+- (2026-08-23) LLM stays off the numbers; may adjudicate only within backtest-measured statistical ties, with validated justifications and memoized verdicts; must earn its place in the backtest
+- (2026-08-23) Manager calibration feedback adjusts definitions, workflow semantics, roster, calendar and sparse-segment priors — never overrides measured quantiles (planning fallacy / reference-class forecasting)
+- (2026-08-23) Never pool raw customer data — single-tenant by default, opt-in aggregate metrics only, self-hosted tier for zero egress; trust is the moat against Atlassian's data advantage
+- (2026-08-23) GTM geography: US/UK first with EU-ready architecture; EU AI Act high-risk conformity (Annex III 4(b), profiling blocks the Art. 6(3) exemption) targeted for the 2027-12-02 deadline
 - (2026-08-08) Data source: Apache Kafka public Jira, pseudonymized contributor names — real enterprise-scale history, zero permission needed, no awkward real-person profiling
 - (2026-08-08) Ranking math lives in deterministic code; LLM only synthesizes/explains with citations — defensible to judges, no hallucinated rankings
 - (2026-08-08) Repo layout: root = engine (ingest/scoring scripts, SQLite in `data/`), `web/` = Next.js dashboard reading the same DB
