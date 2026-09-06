@@ -8,7 +8,7 @@ import type { TeamResponse, PersonSummary, TeamMeta } from "./types";
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
-function percentile(sorted: number[], p: number): number {
+export function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
   const idx = (p / 100) * (sorted.length - 1);
   const lo  = Math.floor(idx);
@@ -16,7 +16,7 @@ function percentile(sorted: number[], p: number): number {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
 }
 
-function r1(n: number): number {
+export function r1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
@@ -25,7 +25,7 @@ function r1(n: number): number {
  * Mirrors the effortProxy logic in engine.ts — keeps median values consistent
  * between what the team page shows and what the engine scores against.
  */
-function effortProxy(
+export function effortProxy(
   work_days: number | null,
   cycle_days: number | null,
   type: string | null,

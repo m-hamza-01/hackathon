@@ -90,3 +90,26 @@ export interface AskResponse {
   clarifyingQuestions: string[];
   candidates: Candidate[];
 }
+
+// ─── GET /api/report ──────────────────────────────────────────────────────────
+
+export type FindingSeverity = "conversation" | "watch" | "healthy";
+
+export interface ReportBar {
+  label: string;
+  value: number;
+}
+
+export interface ReportFinding {
+  id: string;
+  severity: FindingSeverity;
+  claim: string;
+  body: string;
+  bars?: ReportBar[];
+}
+
+export interface ReportResponse {
+  meta: TeamMeta;
+  peopleCount: number;
+  findings: ReportFinding[];
+}
