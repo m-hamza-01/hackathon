@@ -1,6 +1,6 @@
 # Project Tracker
 
-> Last updated: 2026-08-23 (research + business/compliance documented; positioning = calibrated org model, GTM = consultant-led entry with company leave-behind, "instrument the LLM queries" stance vs. general AI tools; Stage 0 non-negotiables unchanged, backtest harness is next)
+> Last updated: 2026-09-06 (product build underway: Team Health Report shipped as the landing page — Unit 1 of the five-unit build plan; backtest harness is Unit 2)
 
 ## Project Summary
 Foreman — hackathon project. Ingests a Jira project's full history (tickets, assignees, comments, transitions), builds per-engineer profiles and a manager dashboard, and answers "who should take this new task, how complex is it, how long will it take" — with every claim citing the real past tickets it's based on. Recommends, never decides.
@@ -9,9 +9,13 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready; entering Stage 0 (pre-pilot non-negotiables, see BUSINESS_AND_COMPLIANCE.md §7). Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
+- [ ] Product build (design canvas approved 2026-09-01, five units): **Unit 1 done** (report page + API). Next: Unit 2 backtest harness (powers the trust banner), Unit 3 analyzing/progress page + ingest-status endpoint, Unit 4 calibrate page + persistence, Unit 5 connect simplification + changelog/estimate ingest (unlocks reassignment + plans-vs-reality findings)
+- [ ] User decision open: show the backtest score to customers? Recommendation on the table: yes, framed as "we aim for 8 in 10, hit X" with a low-score behavioral state (wider ranges, more "not sure") — no banner ships until decided
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] Team Health Report (Unit 1): `/api/report` computes five findings from the DB (work concentration per component, pickup lag with YoY trend, rework share, slowest work type, PR merge turnaround — each omitted rather than guessed when data is thin); report page is the new landing page at `/`, roster moved to `/team`, nav = Report/Team/Ask; trust-banner slot left empty pending backtest + user decision — (2026-09-06, 8017240 + 88a282e)
+- [x] Product screens designed on a Claude Design canvas (Connect, Analyzing, Report, Calibrate, Ask) in the app's real design system; five-unit build order agreed — (2026-09-01)
 - [x] Positioning vs. general AI tools → docs/BUSINESS_AND_COMPLIANCE.md §10.2: honest premise (Claude Code can reproduce much of the diagnostic ad hoc), six structural differences (reproducibility, correctness, calibration, plumbing, continuity, benchmarks), perception/acceptance gaps (client committee, security team, engineers, AI Act), moat = validated method + accumulated data + accumulated trust, MCP-server-as-distribution play — (2026-08-23)
 - [x] Business & compliance analysis → docs/BUSINESS_AND_COMPLIANCE.md: ICP/pricing/platform risk, honest flaws, security gap table vs. today (unauthenticated APIs, plain-file tokens), verified regulatory map (EU AI Act high-risk — Annex III 4(b), deadline moved to 2027-12-02 by Reg. 2026/1744; GDPR DPA/LIA/DPIA; BetrVG works-council veto; UK DUA Act; Illinois/California/Colorado), standards roadmap (SOC 2 → ISO 27001/Cloud Fortified → ISO 42001), data-pooling resolution — (2026-08-23)
 - [x] Algorithm reliability research → docs/ALGORITHM_RESEARCH.md: 4-angle literature sweep (ML triage, duration estimation, graph methods, game theory + market), diagnosis of why ETAs are vague (p75/p25 = 18.6×, cycle≠effort, pooled metrics, n<3 samples, no calibration), target architecture (retrieval + graph features + fitted weights → conformally calibrated ETAs → guardrailed LLM adjudication), generalization principles + Kafka-overfit table, onboarding calibration interview design — (2026-08-23)
