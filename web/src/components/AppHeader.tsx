@@ -11,6 +11,8 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
   const path = usePathname();
   const isAsk = path === "/ask";
   const isConnect = path === "/connect";
+  const isTeam = path === "/team" || path.startsWith("/person");
+  const isReport = !isAsk && !isConnect && !isTeam;
 
   const [jira, setJira] = useState<SourceStatus | null>(null);
   const [github, setGithub] = useState<SourceStatus | null>(null);
@@ -87,7 +89,8 @@ export function AppHeader({ meta }: { meta: TeamMeta | null }) {
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <button onClick={() => router.push("/")} style={navStyle(!isAsk && !isConnect)}>Team</button>
+            <button onClick={() => router.push("/")} style={navStyle(isReport)}>Report</button>
+            <button onClick={() => router.push("/team")} style={navStyle(isTeam)}>Team</button>
             <button onClick={() => router.push("/ask")} style={navStyle(isAsk)}>Ask</button>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 14, borderLeft: "1px solid oklch(0.3 0.008 90)" }}>

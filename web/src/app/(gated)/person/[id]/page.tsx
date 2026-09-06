@@ -146,7 +146,7 @@ export default function PersonPage() {
 
       <main style={{ maxWidth: 1400, margin: "0 auto", padding: "28px 32px 80px" }}>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/team")}
           style={{ background: "none", border: "none", padding: 0, margin: "0 0 22px", cursor: "pointer", fontFamily: "var(--font-code)", fontSize: 11, color: "oklch(0.62 0.008 90)", letterSpacing: "0.04em" }}>
           ←&nbsp;&nbsp;ALL ENGINEERS
         </button>
