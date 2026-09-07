@@ -12,6 +12,7 @@
     "ingest": "npm run fetch && npm run load",
     "report": "tsx src/report.ts",
     "ask": "tsx src/engine/ask.ts",
+    "backtest": "tsx src/eval/backtest.ts",
     "github:fetch": "tsx src/github/fetch-prs.ts",
     "github:load": "tsx src/github/load-prs.ts",
     "github:report": "tsx src/github/report-prs.ts"

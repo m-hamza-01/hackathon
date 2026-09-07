@@ -122,6 +122,10 @@ const COMP_BOOST_STRENGTH = 2.0;  // multiplier for component-expertise overlap 
 const ETA_MIN_LO    = 0.5;  // floor on ETA p25 — "0d" is not a useful estimate
 const ETA_MAX_RATIO = 8.0;  // maximum ETA hi/lo spread shown to a manager
 
+// Sentinel upper bound for the time-travel filter: "no cutoff".
+// DB timestamps are uniform ISO-8601 (+0000), so string comparison is safe.
+const MAX_ISO = "9999-12-31T23:59:59.999+0000";
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function percentile(sorted: number[], p: number): number {
@@ -179,20 +183,27 @@ function recencyDecay(resolvedISO: string | null, nowMs: number): number {
 }
 
 // ── Corpus-wide effort baseline (stable across all queries) ──────────────────
-// Pre-compute once at module load. Used as the globalMedian in speedFactor so
-// speedFactor doesn't vary by query topic (volatile neighbor-set medians shift
-// wildly depending on which 35 tickets come back for a given query).
+// Used as the globalMedian in speedFactor so speedFactor doesn't vary by query
+// topic (volatile neighbor-set medians shift wildly depending on which 35
+// tickets come back for a given query). Cached for the live path; the
+// time-travel path (asOf set) recomputes over pre-cutoff tickets only.
 
-const _corpusMedianEffort: number = (() => {
+let _corpusMedianCached: number | null = null;
+
+function corpusMedianEffort(asOfIso?: string): number {
+  if (!asOfIso && _corpusMedianCached !== null) return _corpusMedianCached;
   const rows = db.prepare(`
-    SELECT work_days, cycle_days, type FROM tickets WHERE resolved IS NOT NULL
-  `).all() as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
+    SELECT work_days, cycle_days, type FROM tickets
+    WHERE resolved IS NOT NULL AND resolved <= ?
+  `).all(asOfIso ?? MAX_ISO) as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
   const efforts = rows
     .map(r => effortProxy(r))
     .filter((v): v is number => v !== null)
     .sort((a, b) => a - b);
-  return efforts.length > 0 ? percentile(efforts, 50) : 15;
-})();
+  const med = efforts.length > 0 ? percentile(efforts, 50) : 15;
+  if (!asOfIso) _corpusMedianCached = med;
+  return med;
+}
 
 // ── Component-signal detection ────────────────────────────────────────────────
 // Light heuristic: detect which Kafka subsystems the query is about, then boost
@@ -224,11 +235,11 @@ function detectComponents(text: string): Set<string> {
 // Per-person component fractions: component → fraction of resolved tickets
 const _compFractionCache = new Map<number, Map<string, number>>();
 
-function personCompFractions(personId: number): Map<string, number> {
-  if (_compFractionCache.has(personId)) return _compFractionCache.get(personId)!;
+function personCompFractions(personId: number, asOfIso?: string): Map<string, number> {
+  if (!asOfIso && _compFractionCache.has(personId)) return _compFractionCache.get(personId)!;
   const rows = db.prepare(
-    "SELECT components FROM tickets WHERE assignee_id = ? AND resolved IS NOT NULL"
-  ).all(personId) as Array<{ components: string | null }>;
+    "SELECT components FROM tickets WHERE assignee_id = ? AND resolved IS NOT NULL AND resolved <= ?"
+  ).all(personId, asOfIso ?? MAX_ISO) as Array<{ components: string | null }>;
   const counts = new Map<string, number>();
   let total = 0;
   for (const r of rows) {
@@ -241,7 +252,7 @@ function personCompFractions(personId: number): Map<string, number> {
   const fracs = new Map<string, number>(
     [...counts].map(([k, v]) => [k, v / Math.max(1, total)])
   );
-  _compFractionCache.set(personId, fracs);
+  if (!asOfIso) _compFractionCache.set(personId, fracs);
   return fracs;
 }
 
@@ -249,25 +260,31 @@ function personCompFractions(personId: number): Map<string, number> {
 
 const _personMedianCache = new Map<number, number>();
 
-function personGlobalMedian(personId: number): number {
-  if (_personMedianCache.has(personId)) return _personMedianCache.get(personId)!;
+function personGlobalMedian(personId: number, asOfIso?: string): number {
+  if (!asOfIso && _personMedianCache.has(personId)) return _personMedianCache.get(personId)!;
   const rows = db.prepare(`
     SELECT work_days, cycle_days, type FROM tickets
-    WHERE assignee_id = ? AND resolved IS NOT NULL
-  `).all(personId) as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
+    WHERE assignee_id = ? AND resolved IS NOT NULL AND resolved <= ?
+  `).all(personId, asOfIso ?? MAX_ISO) as Array<{ work_days: number | null; cycle_days: number | null; type: string }>;
   const efforts = rows
     .map(r => effortProxy(r))
     .filter((v): v is number => v !== null)
     .sort((a, b) => a - b);
   const med = efforts.length > 0 ? percentile(efforts, 50) : 15;
-  _personMedianCache.set(personId, med);
+  if (!asOfIso) _personMedianCache.set(personId, med);
   return med;
 }
 
-function activeWip(personId: number): number {
-  const row = db.prepare(
-    "SELECT COUNT(*) as cnt FROM tickets WHERE resolved IS NULL AND assignee_id = ?"
-  ).get(personId) as { cnt: number } | undefined;
+function activeWip(personId: number, asOfIso?: string): number {
+  // Time-travel: WIP = tickets created by the cutoff and not yet resolved at it.
+  const row = asOfIso
+    ? db.prepare(
+        `SELECT COUNT(*) as cnt FROM tickets
+         WHERE assignee_id = ? AND created <= ? AND (resolved IS NULL OR resolved > ?)`
+      ).get(personId, asOfIso, asOfIso) as { cnt: number } | undefined
+    : db.prepare(
+        "SELECT COUNT(*) as cnt FROM tickets WHERE resolved IS NULL AND assignee_id = ?"
+      ).get(personId) as { cnt: number } | undefined;
   return row?.cnt ?? 0;
 }
 
@@ -278,9 +295,16 @@ export function ask(params: {
   description?: string;
   /** Exclude this ticket ID from the BM25 index — for leave-one-out evaluation */
   excludeId?: number;
+  /**
+   * Time-travel cutoff (ISO, DB format) — for backtesting. Only tickets
+   * resolved on or before this instant exist; recency decay, WIP, and all
+   * medians are computed as of this instant. Live queries leave it unset.
+   */
+  asOf?: string;
   opts?: { topK?: number; topCandidates?: number };
 }): QueryResult {
-  const nowMs = Date.now();
+  const asOfIso = params.asOf;
+  const nowMs = asOfIso ? new Date(asOfIso).getTime() : Date.now();
 
   // Build BM25 index over resolved tickets (excluding the eval ticket if set).
   // id != -1 is always true (Jira ids are positive), so one bound-parameter
@@ -289,8 +313,8 @@ export function ask(params: {
     SELECT id, key, title, description, components, labels,
            resolved, assignee_id, cycle_days, work_days, type, comment_count
     FROM tickets
-    WHERE resolved IS NOT NULL AND id != ?
-  `).all(params.excludeId ?? -1) as RawDoc[];
+    WHERE resolved IS NOT NULL AND id != ? AND resolved <= ?
+  `).all(params.excludeId ?? -1, asOfIso ?? MAX_ISO) as RawDoc[];
 
   const idx        = buildIndex(rawDocs);
   const queryText  = [params.title, params.description].filter(Boolean).join(" ");
@@ -407,7 +431,7 @@ export function ask(params: {
   for (const [assigneeId, nts] of byAssignee) {
     if (nts.length < MIN_MATCHES) continue;
 
-    const wip = activeWip(assigneeId);
+    const wip = activeWip(assigneeId, asOfIso);
 
     // Person's median effort on their neighbor subset (fallback to global profile)
     const subsetEfforts = nts
@@ -417,11 +441,11 @@ export function ask(params: {
 
     const personMedian = subsetEfforts.length > 0
       ? percentile(subsetEfforts, 50)
-      : personGlobalMedian(assigneeId);
+      : personGlobalMedian(assigneeId, asOfIso);
 
     // speedFactor uses corpus-wide median (stable, not query-dependent)
     const speedFactor = personMedian > 0
-      ? Math.max(0.5, Math.min(2.0, _corpusMedianEffort / personMedian))
+      ? Math.max(0.5, Math.min(2.0, corpusMedianEffort(asOfIso) / personMedian))
       : 1.0;
 
     // wipPenalty: continuous — 0 WIP → 1.0, 4 WIP → ≈ 0.63
@@ -445,7 +469,7 @@ export function ask(params: {
     // No detected components → boost stays 1.0 (no effect).
     let componentBoost = 1.0;
     if (queryComps.size > 0) {
-      const fracs = personCompFractions(assigneeId);
+      const fracs = personCompFractions(assigneeId, asOfIso);
       let overlap = 0;
       for (const comp of queryComps) overlap += fracs.get(comp) ?? 0;
       overlap /= queryComps.size;
