@@ -10,7 +10,6 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 
 ## In Progress
 - [ ] Product build (design canvas approved 2026-09-01, five units): **Unit 1 done** (report page + API). Next: Unit 2 backtest harness (powers the trust banner), Unit 3 analyzing/progress page + ingest-status endpoint, Unit 4 calibrate page + persistence, Unit 5 connect simplification + changelog/estimate ingest (unlocks reassignment + plans-vs-reality findings)
-- [ ] User decision open: show the backtest score to customers? Recommendation on the table: yes, framed as "we aim for 8 in 10, hit X" with a low-score behavioral state (wider ranges, more "not sure") — no banner ships until decided
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
@@ -75,6 +74,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 - None
 
 ## Key Decisions
+- (2026-09-07) Customer-facing UI shows only directly useful insight — internal system outputs (calibration/backtest scores, coverage stats, self-diagnostics) never surface to customers. The 82%-score trust banner is cut from the report; the backtest stays as our internal quality gate, and its value reaches customers as behavior (honest ranges, abstaining when history is thin). At most a plain provenance line. Supersedes the mockup's score banner and the "target vs achieved" reframe proposal.
 - (2026-08-23) Versus general AI tools: do not compete on analysis (Claude Code can reproduce much of the diagnostic ad hoc) — compete on what compounds and cannot be re-derived per engagement: validated method (calibration certificates), accumulated data (opt-in benchmarks), accumulated trust (DPA/SOC 2/conformity/name). Posture: "Foreman is the instrument, Claude is the analyst's assistant" — ship an MCP server so general AI tools become distribution — §10.2
 - (2026-08-23) GTM: consultant-led entry, company-retained tool — sell to technical due-diligence firms, fractional CTOs, and engineering-effectiveness boutiques as the instrument behind their diagnostics (they take responsibility, we supply calibrated evidence); Foreman stays as the leave-behind for daily routing + continuous calibration; supersedes the free design-partner programme — BUSINESS_AND_COMPLIANCE.md §10
 - (2026-08-23) Positioning: "who takes this ticket" is a feature, not a premium product — the headline is a calibrated model of the engineering org (commitment forecasts, hiring signal, key-person risk, senior-load); per-ticket loop is the wedge and calibration source; price per decision/org, never per seat; premium only with proof on their own data — §9
