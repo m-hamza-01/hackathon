@@ -9,10 +9,11 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 **Status**: Active — demo-ready; entering Stage 0 (pre-pilot non-negotiables, see BUSINESS_AND_COMPLIANCE.md §7). Front end + API + SQLite all live on real data; `web && npm run build && npm start` serves the full app. Only optional item outstanding: ANTHROPIC_API_KEY in root `.env` for Claude-written prose (template fallback works without it).
 
 ## In Progress
-- [ ] Product build (design canvas approved 2026-09-01, five units): **Unit 1 done** (report page + API). Next: Unit 2 backtest harness (powers the trust banner), Unit 3 analyzing/progress page + ingest-status endpoint, Unit 4 calibrate page + persistence, Unit 5 connect simplification + changelog/estimate ingest (unlocks reassignment + plans-vs-reality findings)
+- [ ] Product build (design canvas approved 2026-09-01, five units): **Units 1–2 done** (report page + API; backtest harness). Next: Unit 3 analyzing/progress page + ingest-status endpoint, Unit 4 calibrate page + persistence, Unit 5 connect simplification + changelog/estimate ingest (unlocks reassignment + plans-vs-reality findings)
 - [ ] Cloudflare: edit the "foreman" redirect rule from 301 → 302 so the temporary forward isn't browser-cached past the hackathon
 
 ## Recently Completed
+- [x] Backtest harness (Unit 2, §5.1): engine gained a leakage-free `asOf` time-travel mode (BM25 corpus, recency, WIP, medians all as-of cutoff; live path untouched); `npm run backtest` scores 400 rolled-back tickets → JSON in data/backtests/. **Honest baseline on demo data: top-1 8.8% / top-3 18% / top-10 30.6% (naive most-active baseline 2.3%/9%); 50% interval covers only 19.7% (badly overconfident — demo-safety clamps squeeze ranges); log-MAE 1.91 ≈ typical ×6.7 miss; abstention 0.3% (engine almost never says "not sure")**. This is the reference point every engine change must beat — (2026-09-07, 897858f)
 - [x] Team Health Report (Unit 1): `/api/report` computes five findings from the DB (work concentration per component, pickup lag with YoY trend, rework share, slowest work type, PR merge turnaround — each omitted rather than guessed when data is thin); report page is the new landing page at `/`, roster moved to `/team`, nav = Report/Team/Ask; trust-banner slot left empty pending backtest + user decision — (2026-09-06, 8017240 + 88a282e)
 - [x] Product screens designed on a Claude Design canvas (Connect, Analyzing, Report, Calibrate, Ask) in the app's real design system; five-unit build order agreed — (2026-09-01)
 - [x] Positioning vs. general AI tools → docs/BUSINESS_AND_COMPLIANCE.md §10.2: honest premise (Claude Code can reproduce much of the diagnostic ad hoc), six structural differences (reproducibility, correctness, calibration, plumbing, continuity, benchmarks), perception/acceptance gaps (client committee, security team, engineers, AI Act), moat = validated method + accumulated data + accumulated trust, MCP-server-as-distribution play — (2026-08-23)
@@ -48,7 +49,7 @@ Foreman — hackathon project. Ingests a Jira project's full history (tickets, a
 
 ## Upcoming / Planned
 **Stage 0 — non-negotiables before any real customer data (target ~4–6 weeks):**
-- [ ] Backtest harness (ALGORITHM_RESEARCH.md §5.1) — time-travel eval over resolved tickets: top-1/top-3 hit rate vs. final resolver, interval coverage at 50/80/95%, log-MAE, abstention rate. Prerequisite for every engine change — next up
+- [x] Backtest harness (ALGORITHM_RESEARCH.md §5.1) — done 2026-09-07 (see Recently Completed); 80/95% interval coverage still pending the conformal-calibration work below
 - [ ] Engine reliability pass (§5.2–5.4, §7 roadmap): final-resolver labels, work_days-only log-space target, similarity floor, sample-size tiers + abstention, conformal calibration, survival-style ETA display + calibration table
 - [ ] Generalization sweep (§4 table): replace Kafka component regexes, absolute complexity thresholds, KAFKA-key citation regex, literal status names (→ statusCategory), hand-tuned constants
 - [ ] Tossing-graph + PR-ownership features; fit score weights against backtest (subsumes the PR-metrics surfacing decision below)
